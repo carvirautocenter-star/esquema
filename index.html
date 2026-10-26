@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gerador Opinautos · FIPE</title>
+<style>
+  /* ===== RESET & BASE ===== */
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+  body {
+    background: #f4f6fa;
+    color: #1e293b;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 16px;
+  }
+
+  /* ===== CONTAINER ===== */
+  .app {
+    width: 100%;
+    max-width: 560px;
+    background: #ffffff;
+    border-radius: 24px;
+    box-shadow: 0 20px 40px -12px rgba(0,0,0,0.15);
+    padding: 28px 22px 32px;
+    align-self: flex-start;
+  }
+
+  /* ===== CABEÇALHO ===== */
+  .header { text-align: center; margin-bottom: 26px; }
+  .header h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.5px; color: #0f172a; }
+  .header p { font-size: 0.85rem; color: #64748b; margin-top: 4px; }
+
+  /* ===== FORMULÁRIO ===== */
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #475569; margin-bottom: 6px; }
+  .field select,
+  .field input[type="text"] {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    background: #f8fafc;
+    transition: border-color .2s, box-shadow .2s;
+    color: #0f172a;
+  }
+  .field select:focus,
+  .field input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59,130,246,.15);
+    background: #fff;
+  }
+  .field select:disabled,
+  .field input:disabled {
+    background: #f1f5f9;
+    color: #94a3b8;
+    cursor: not-allowed;
+  }
+
+  .hint {
+    font-size: 0.72rem;
+    color: #94a3b8;
+    margin-top: 4px;
+  }
+
+  /* ===== CARTÕES DE SEÇÃO ===== */
+  .sections {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+    margin-top: 28px;
+  }
+  @media (min-width: 480px) {
+    .sections { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  .card {
+    position: relative;
+    border-radius: 16px;
+    padding: 18px 12px 14px;
+    text-align: center;
+    border: 2px solid transparent;
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: default;
+    background: #f8fafc;
+  }
+  .card.ready {
+    cursor: pointer;
+    background: #fff;
+  }
+  .card.ready:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 24px -10px rgba(0,0,0,.18);
+  }
+  .card.ready:active { transform: translateY(-1px); }
+
+  /* Cores por seção */
+  .card--fuse.ready   { border-color: #3b82f6; }
+  .card--manual.ready { border-color: #10b981; }
+  .card--repair.ready { border-color: #f59e0b; }
+
+  .card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .card--fuse   .card-icon { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+  .card--manual .card-icon { background: linear-gradient(135deg, #10b981, #059669); }
+  .card--repair .card-icon { background: linear-gradient(135deg, #f59e0b, #d97706); }
+
+  .card-icon svg { width: 26px; height: 26px; }
+
+  .card-title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 4px;
+  }
+
+  .card-status {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #94a3b8;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .card.ready .card-status { color: #64748b; }
+
+  .card-link {
+    display: none;
+    margin-top: 8px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 10px;
+    text-decoration: none;
+    width: 100%;
+    transition: filter .15s;
+  }
+  .card.ready .card-link { display: inline-block; }
+  .card--fuse   .card-link { background: #3b82f6; }
+  .card--manual .card-link { background: #10b981; }
+  .card--repair .card-link { background: #f59e0b; }
+  .card-link:hover { filter: brightness(1.1); }
+
+  /* ===== ESTADOS GERAIS ===== */
+  .msg {
+    text-align: center;
+    font-size: 0.8rem;
+    margin-top: 18px;
+    min-height: 20px;
+  }
+  .msg--error { color: #dc2626; }
+  .msg--loading { color: #64748b; }
+
+  .spinner {
+    display: inline-block;
+    width: 16px; height: 16px;
+    border: 2px solid #cbd5e1;
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- Cabeçalho -->
+  <div class="header">
+    <h1>🔧 Opinautos FIPE</h1>
+    <p>Selecione o veículo para gerar os links de Fusíveis, Manuais e Reparo.</p>
+  </div>
+
+  <!-- Marca -->
+  <div class="field">
+    <label for="selMarca">Marca</label>
+    <select id="selMarca" onchange="onMarca()">
+      <option value="">Carregando marcas…</option>
+    </select>
+  </div>
+
+  <!-- Modelo -->
+  <div class="field">
+    <label for="selModelo">Modelo</label>
+    <select id="selModelo" onchange="onModelo()" disabled>
+      <option value="">Selecione a marca primeiro</option>
+    </select>
+  </div>
+
+  <!-- Ano -->
+  <div class="field">
+    <label for="selAno">Ano <span style="font-weight:400; text-transform:none; color:#94a3b8;">(obrigatório para fusíveis)</span></label>
+    <select id="selAno" onchange="renderLinks()" disabled>
+      <option value="">Selecione o modelo primeiro</option>
+    </select>
+  </div>
+
+  <!-- Nome do modelo na URL (editável) -->
+  <div class="field" id="campoUrlModelo" style="display:none;">
+    <label for="inpModeloUrl" style="color:#3b82f6;">Nome do modelo na URL</label>
+    <input type="text" id="inpModeloUrl" placeholder="ex: amarok" oninput="renderLinks()">
+    <p class="hint">Ajuste se o slug do Opinautos for diferente da FIPE.</p>
+  </div>
+
+  <!-- Cartões das três seções -->
+  <div class="sections">
+    <!-- Fusíveis -->
+    <div class="card card--fuse" id="cardFuse">
+      <div class="card-icon">
+        <!-- Ícone de raio/fusível -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        </svg>
+      </div>
+      <div class="card-title">Fusíveis</div>
+      <div class="card-status" id="statusFuse">Aguardando dados</div>
+      <a href="#" class="card-link" id="linkFuse" target="_blank" rel="noopener">Abrir fusíveis ↗</a>
+    </div>
+
+    <!-- Manuais -->
+    <div class="card card--manual" id="cardManual">
+      <div class="card-icon">
+        <!-- Ícone de livro -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+        </svg>
+      </div>
+      <div class="card-title">Manuais</div>
+      <div class="card-status" id="statusManual">Aguardando dados</div>
+      <a href="#" class="card-link" id="linkManual" target="_blank" rel="noopener">Abrir manuais ↗</a>
+    </div>
+
+    <!-- Reparo -->
+    <div class="card card--repair" id="cardRepair">
+      <div class="card-icon">
+        <!-- Ícone de chave inglesa -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+        </svg>
+      </div>
+      <div class="card-title">Reparo</div>
+      <div class="card-status" id="statusRepair">Aguardando dados</div>
+      <a href="#" class="card-link" id="linkRepair" target="_blank" rel="noopener">Abrir reparo ↗</a>
+    </div>
+  </div>
+
+  <div class="msg" id="mensagem"></div>
+</div>
+
+<script>
+  /* =========================================================
+     CONFIGURAÇÃO E ESTADO
+     ========================================================= */
+  const API = "https://parallelum.com.br/fipe/api/v1/carros";
+
+  const selMarca   = document.getElementById("selMarca");
+  const selModelo  = document.getElementById("selModelo");
+  const selAno     = document.getElementById("selAno");
+  const inpModeloUrl = document.getElementById("inpModeloUrl");
+  const campoUrlModelo = document.getElementById("campoUrlModelo");
+  const msgEl      = document.getElementById("mensagem");
+
+  let modeloNomeCompleto = "";
+
+  /* =========================================================
+     1) CARREGAR MARCAS
+     ========================================================= */
+  async function carregarMarcas() {
+    try {
+      const res = await fetch(`${API}/marcas`);
+      const marcas = await res.json();
+      selMarca.innerHTML = '<option value="">Selecione a Marca</option>';
+      marcas.forEach(m => {
+        selMarca.innerHTML += `<option value="${m.codigo}" data-nome="${m.nome}">${m.nome}</option>`;
+      });
+    } catch {
+      selMarca.innerHTML = '<option value="">Erro ao carregar</option>';
+      showMsg("Falha ao conectar com a API da FIPE.", "error");
+    }
+  }
+
+  /* =========================================================
+     2) CARREGAR MODELOS
+     ========================================================= */
+  async function onMarca() {
+    const marcaId = selMarca.value;
+    if (!marcaId) return;
+
+    resetSelect(selModelo, "Carregando modelos…");
+    resetSelect(selAno, "Selecione um modelo primeiro");
+    campoUrlModelo.style.display = "none";
+    limparCartoes();
+    showMsg("");
+
+    try {
+      const res = await fetch(`${API}/marcas/${marcaId}/modelos`);
+      const data = await res.json();
+      selModelo.innerHTML = '<option value="">Selecione o Modelo</option>';
+      data.modelos.forEach(m => {
+        selModelo.innerHTML += `<option value="${m.codigo}" data-nome="${m.nome}">${m.nome}</option>`;
+      });
+      selModelo.disabled = false;
+    } catch {
+      showMsg("Erro ao carregar modelos.", "error");
+    }
+  }
+
+  /* =========================================================
+     3) CARREGAR ANOS
+     ========================================================= */
+  async function onModelo() {
+    const marcaId = selMarca.value;
+    const modeloId = selModelo.value;
+    modeloNomeCompleto = selModelo.options[selModelo.selectedIndex]?.dataset.nome || "";
+
+    if (!modeloId) return;
+
+    resetSelect(selAno, "Carregando anos…");
+    limparCartoes();
+    showMsg("");
+
+    // Sugestão automática para o slug da URL (primeira palavra)
+    const sugestao = modeloNomeCompleto.split(" ")[0].toLowerCase();
+    inpModeloUrl.value = sugestao;
+    campoUrlModelo.style.display = "block";
+
+    try {
+      const res = await fetch(`${API}/marcas/${marcaId}/modelos/${modeloId}/anos`);
+      const anos = await res.json();
+
+      selAno.innerHTML = '<option value="">Selecione o Ano</option>';
+      const vistos = new Set();
+      anos.forEach(a => {
+        const anoLimpo = a.nome.split(" ")[0].split("-")[0];
+        if (!vistos.has(anoLimpo)) {
+          vistos.add(anoLimpo);
+          selAno.innerHTML += `<option value="${anoLimpo}">${a.nome}</option>`;
+        }
+      });
+      selAno.disabled = false;
+    } catch {
+      showMsg("Erro ao carregar anos.", "error");
+    }
+  }
+
+  /* =========================================================
+     4) RENDERIZAR OS TRÊS LINKS
+     ========================================================= */
+  function renderLinks() {
+    const marcaNome = selMarca.options[selMarca.selectedIndex]?.dataset.nome;
+    const modeloSlug = inpModeloUrl.value.trim();
+    const ano = selAno.value;
+
+    if (!marcaNome || !modeloSlug) {
+      limparCartoes();
+      return;
+    }
+
+    const slugMarca = slugify(marcaNome);
+    const slugModelo = slugify(modeloSlug);
+
+    // ---- Fusíveis (ano obrigatório) ----
+    if (ano) {
+      const urlFuse = `https://www.opinautos.com.br/br/${slugMarca}/${slugModelo}/info/fusiveis/${ano}`;
+      ativarCartao("cardFuse", "linkFuse", "statusFuse", urlFuse);
+    } else {
+      desativarCartao("cardFuse", "statusFuse", "Informe o ano");
+    }
+
+    // ---- Manuais (ano opcional) ----
+    const urlManual = ano
+      ? `https://www.opinautos.com.br/br/${slugMarca}/${slugModelo}/info/manuais/${ano}`
+      : `https://www.opinautos.com.br/br/${slugMarca}/${slugModelo}/info/manuais`;
+    ativarCartao("cardManual", "linkManual", "statusManual", urlManual);
+
+    // ---- Reparo (URL fixa, sem ano) ----
+    const urlRepair = `https://www.opinautos.com.br/br/${slugMarca}/${slugModelo}/info/manuais/reparo`;
+    ativarCartao("cardRepair", "linkRepair", "statusRepair", urlRepair);
+  }
+
+  /* =========================================================
+     FUNÇÕES AUXILIARES
+     ========================================================= */
+  function ativarCartao(cardId, linkId, statusId, url) {
+    const card = document.getElementById(cardId);
+    const link = document.getElementById(linkId);
+    const status = document.getElementById(statusId);
+
+    card.classList.add("ready");
+    link.href = url;
+    status.textContent = "Link pronto";
+  }
+
+  function desativarCartao(cardId, statusId, texto) {
+    const card = document.getElementById(cardId);
+    const status = document.getElementById(statusId);
+    card.classList.remove("ready");
+    status.textContent = texto;
+  }
+
+  function limparCartoes() {
+    ["cardFuse", "cardManual", "cardRepair"].forEach(id => {
+      document.getElementById(id).classList.remove("ready");
+    });
+    document.getElementById("statusFuse").textContent = "Aguardando dados";
+    document.getElementById("statusManual").textContent = "Aguardando dados";
+    document.getElementById("statusRepair").textContent = "Aguardando dados";
+  }
+
+  function resetSelect(selectEl, texto) {
+    selectEl.innerHTML = `<option value="">${texto}</option>`;
+    selectEl.disabled = true;
+  }
+
+  function showMsg(texto, tipo = "") {
+    msgEl.textContent = texto;
+    msgEl.className = "msg" + (tipo ? ` msg--${tipo}` : "");
+  }
+
+  function slugify(text) {
+    return text.toString().toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/[^\w\-]+/g, "")
+      .replace(/\-\-+/g, "-");
+  }
+
+  /* =========================================================
+     INICIALIZAÇÃO
+     ========================================================= */
+  carregarMarcas();
+</script>
+</body>
+</html>
