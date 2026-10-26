@@ -1,559 +1,1338 @@
-
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#f3f6fc">
-<title>Opinautos FIPE Pro</title>
-<style>
-:root{--blue:#2563eb;--green:#059669;--orange:#d97706;--red:#dc2626;--purple:#7c3aed;--cyan:#0284c7;--ink:#172033;--muted:#64748b;--line:#e2e8f0;--bg:#f3f6fc}
-*{box-sizing:border-box}
-body{margin:0;padding:14px;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
-button,input{font:inherit}
-.app{max-width:780px;margin:auto;padding:22px;background:#fff;border-radius:22px;box-shadow:0 14px 40px #17203312}
-header{text-align:center;margin-bottom:25px}
-header h1{font-size:clamp(1.4rem,5vw,1.9rem);margin:0;font-weight:850}
-header p{color:var(--muted);font-size:.88rem;line-height:1.5}
-.field{margin:25px 0;position:relative}
-label{display:block;font-size:.82rem;font-weight:700;margin:0 0 7px 3px}
-.input-wrap{position:relative}
-.input-wrap input{display:block;width:100%;min-height:56px;padding:15px 44px 15px 15px;border:2px solid #34343d;border-radius:14px;background:white;color:var(--ink);outline:none;font-size:1rem}
-.input-wrap input:focus{border-color:var(--blue);box-shadow:0 0 0 3px #2563eb18}
-.input-wrap input:disabled{background:#f1f5f9;color:#94a3b8;cursor:not-allowed}
-.field-icon{position:absolute;right:15px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--muted)}
-.hint{font-size:.73rem;color:var(--muted);margin:6px 3px 0;line-height:1.45}
-.results{display:none;position:absolute;top:calc(100% + 5px);left:0;right:0;z-index:100;background:#fff;border:1px solid #cbd5e1;border-radius:13px;box-shadow:0 12px 28px #17203320;max-height:250px;overflow-y:auto;overscroll-behavior:contain}
-.field.active .results{display:block}
-.result{display:block;width:100%;padding:13px 14px;background:white;color:var(--ink);border:0;border-bottom:1px solid #f1f5f9;text-align:left;cursor:pointer;font-size:.88rem;overflow-wrap:anywhere}
-.result:last-child{border-bottom:0}
-.result:hover,.result:focus{background:#eff6ff;outline:none}
-.result small{display:block;color:var(--muted);font-size:.73rem;margin-top:3px}
-.result.empty{color:var(--muted);cursor:default}
-.vehicle{border:1px solid #dbe5f2;border-radius:19px;overflow:hidden;background:linear-gradient(140deg,#fff,#f7faff);margin-top:25px}
-.vehicle-top{padding:19px;display:grid;grid-template-columns:70px minmax(0,1fr);align-items:center;gap:14px}
-.logo{width:70px;height:70px;border-radius:17px;background:white;border:1px solid #dfe7f2;display:flex;align-items:center;justify-content:center;overflow:hidden}
-.logo img{width:100%;height:100%;object-fit:contain;padding:7px}
-.logo-fallback{font-size:2rem}
-.pill{display:inline-block;border-radius:99px;background:#eff6ff;color:#1d4ed8;padding:4px 9px;font-size:.68rem;font-weight:800}
-.vehicle-name{min-width:0}
-.vehicle-name h2{font-size:1.1rem;line-height:1.35;margin:7px 0;overflow-wrap:anywhere}
-.vehicle-name p{font-size:.8rem;color:var(--muted);margin:0;line-height:1.5}
-.price-area{padding:16px 19px;background:#ecfdf5;border-top:1px solid #d1fae5;border-bottom:1px solid #d1fae5}
-.price-label{font-size:.72rem;color:#047857;font-weight:800;text-transform:uppercase;letter-spacing:.4px}
-.price{font-size:clamp(1.65rem,7vw,2.2rem);font-weight:850;color:#047857;margin:4px 0;overflow-wrap:anywhere}
-.ref{font-size:.75rem;color:#047857;line-height:1.5}
-.details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:16px 19px}
-.detail{background:#f8fafc;border:1px solid #edf1f7;border-radius:11px;padding:11px;min-width:0}
-.detail span{display:block;font-size:.7rem;color:var(--muted);margin-bottom:5px}
-.detail strong{font-size:.83rem;overflow-wrap:anywhere}
-.vehicle-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:0 19px 19px}
-.btn{display:inline-flex;justify-content:center;align-items:center;gap:7px;border:0;border-radius:11px;padding:12px;text-decoration:none;font-size:.81rem;font-weight:750;cursor:pointer;text-align:center}
-.btn-blue{background:var(--blue);color:#fff}
-.btn-dark{background:#172033;color:#fff}
-.btn-light{background:#f1f5f9;color:#334155;border:1px solid var(--line)}
-.sections{display:grid;grid-template-columns:1fr;gap:12px;margin-top:23px}
-.card{border:2px solid var(--line);border-radius:15px;padding:15px;text-align:center;background:#fff;min-width:0;display:flex;flex-direction:column;align-items:stretch}
-.card-icon{font-size:1.8rem}
-.card h3{font-size:.93rem;margin:7px 0}
-.card p{font-size:.75rem;color:var(--muted);min-height:34px;line-height:1.45;overflow-wrap:anywhere;flex:1}
-.card a{display:block;margin-top:9px;padding:11px 8px;border-radius:9px;color:white;text-decoration:none;font-size:.79rem;font-weight:750}
-.card a.disabled{pointer-events:none;opacity:.42}
-.card--fuse{border-color:#bfdbfe}.card--fuse a{background:var(--blue)}
-.card--owner{border-color:#a7f3d0}.card--owner a{background:var(--green)}
-.card--tech{border-color:#fde68a}.card--tech a{background:var(--orange)}
-.card--guides{border-color:#bae6fd}.card--guides a{background:var(--cyan)}
-.card--opinions{border-color:#c4b5fd}.card--opinions a{background:var(--purple)}
-.card--defeitos{border-color:#fecaca}.card--defeitos a{background:var(--red)}
-.toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-top:20px}
-.toolbar .btn{flex:1}
-.status{margin-top:16px;font-size:.82rem;line-height:1.5;text-align:center;color:var(--muted);overflow-wrap:anywhere}
-.status.error{color:#b91c1c}.status.success{color:#047857}
-.spinner{display:inline-block;width:13px;height:13px;border:2px solid #cbd5e1;border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;margin-right:7px;vertical-align:middle}
-@keyframes spin{to{transform:rotate(360deg)}}
-.hidden{display:none!important}
-footer{margin-top:22px;text-align:center;font-size:.7rem;line-height:1.55;color:#94a3b8}
-@media(min-width:560px){.sections{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(min-width:720px){.sections{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media(max-width:390px){body{padding:8px}.app{padding:14px}.vehicle-top{grid-template-columns:56px minmax(0,1fr);gap:10px;padding:14px}.logo{width:56px;height:56px}.vehicle-actions{grid-template-columns:1fr;padding:0 12px 14px}.details{padding:12px;gap:7px}.detail{padding:9px}}
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important}}
-</style>
-</head>
-<body>
-<main class="app">
-<header>
-<h1>🔧 Opinautos FIPE Pro</h1>
-<p>Pesquise o veículo, consulte a referência FIPE e acesse materiais técnicos, guias e defeitos relatados.</p>
-</header>
-
-<div class="field" id="fieldMarca">
-<label for="buscaMarca">1. Fabricante</label>
-<div class="input-wrap"><input id="buscaMarca" type="text" placeholder="Toque para selecionar a fabricante" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="listaMarcas"><span class="field-icon">⌄</span></div>
-<div class="results" id="listaMarcas" role="listbox"></div>
-<p class="hint">Toque no campo para ver as opções ou digite para filtrar.</p>
-</div>
-
-<div class="field" id="fieldModelo">
-<label for="buscaModelo">2. Modelo do veículo</label>
-<div class="input-wrap"><input id="buscaModelo" type="text" placeholder="Selecione primeiro a fabricante" autocomplete="off" disabled role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="listaModelos"><span class="field-icon">⌄</span></div>
-<div class="results" id="listaModelos" role="listbox"></div>
-<p class="hint">A lista será filtrada automaticamente conforme você digitar.</p>
-</div>
-
-<div class="field" id="fieldAno">
-<label for="buscaAno">3. Ano e combustível</label>
-<div class="input-wrap"><input id="buscaAno" type="text" placeholder="Selecione primeiro o modelo" autocomplete="off" disabled role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="listaAnos"><span class="field-icon">⌄</span></div>
-<div class="results" id="listaAnos" role="listbox"></div>
-<p class="hint">Selecione o ano-modelo e o combustível correspondente.</p>
-</div>
-
-<section class="vehicle hidden" id="cardFipe">
-<div class="vehicle-top">
-<div class="logo" id="logoBox"><span class="logo-fallback">🚘</span></div>
-<div class="vehicle-name"><span class="pill">CONSULTA FIPE</span><h2 id="fipeTitulo">Veículo</h2><p id="fipeSubtitulo">Informações do veículo</p></div>
-</div>
-<div class="price-area"><div class="price-label">Preço médio FIPE</div><div class="price" id="fipePreco">Consultando...</div><div class="ref" id="fipeReferencia">Aguardando resposta da API</div></div>
-<div class="details">
-<div class="detail"><span>Fabricante</span><strong id="fipeMarca">—</strong></div>
-<div class="detail"><span>Modelo</span><strong id="fipeModelo">—</strong></div>
-<div class="detail"><span>Ano do modelo</span><strong id="fipeAno">—</strong></div>
-<div class="detail"><span>Combustível</span><strong id="fipeCombustivel">—</strong></div>
-<div class="detail"><span>Código FIPE</span><strong id="fipeCodigo">—</strong></div>
-<div class="detail"><span>Referência</span><strong id="fipeMes">—</strong></div>
-</div>
-<div class="vehicle-actions">
-<a class="btn btn-blue" id="wmMarca" href="#" target="_blank" rel="noopener noreferrer">🌐 FIPE da marca</a>
-<a class="btn btn-dark" id="wmModelo" href="#" target="_blank" rel="noopener noreferrer">🚘 FIPE deste veículo</a>
-<a class="btn btn-light" id="wmBusca" href="#" target="_blank" rel="noopener noreferrer">🔎 Anúncios na Webmotors</a>
-</div>
-</section>
-
-<section class="sections" aria-label="Categorias técnicas do Opinautos">
-<article class="card card--fuse"><div class="card-icon">⚡</div><h3>Diagrama de fusíveis</h3><p id="statusFuse">Selecione o veículo</p><a id="linkFuse" class="disabled" href="#" target="_blank" rel="noopener noreferrer">Abrir fusíveis ↗</a></article>
-<article class="card card--owner"><div class="card-icon">📘</div><h3>Manual do proprietário</h3><p id="statusOwner">Selecione o veículo</p><a id="linkOwner" class="disabled" href="#" target="_blank" rel="noopener noreferrer">Abrir manual ↗</a></article>
-<article class="card card--tech"><div class="card-icon">🔧</div><h3>Manual técnico</h3><p id="statusTech">Selecione o veículo</p><a id="linkTech" class="disabled" href="#" target="_blank" rel="noopener noreferrer">Abrir manual técnico ↗</a></article>
-<article class="card card--guides"><div class="card-icon">📚</div><h3>Guias úteis</h3><p id="statusGuias">Selecione o veículo</p><a id="linkGuias" class="disabled" href="#" target="_blank" rel="noopener noreferrer">Abrir guias ↗</a></article>
-<article class="card card--opinions"><div class="card-icon">💬</div><h3>Opiniões de proprietários</h3><p id="statusOpinions">Selecione o veículo</p><a id="linkOpinions" class="disabled" href="#" target="_blank" rel="noopener noreferrer">Ver opiniões ↗</a></article>
-<article class="card card--defeitos"><div class="card-icon">🚨</div><h3>Defeitos e problemas</h3><p id="statusDefeitos">Selecione o veículo</p><a id="linkDefeitos" class="disabled" href="#" target="_blank" rel="noopener noreferrer">Ver defeitos ↗</a></article>
-</section>
-
-<div class="toolbar"><button type="button" class="btn btn-light" id="btnLimpar">Limpar seleção</button><button type="button" class="btn btn-light" id="btnAtualizar">Atualizar FIPE</button></div>
-<div id="mensagem" class="status" role="status" aria-live="polite">Inicializando...</div>
-<footer>A seleção do veículo e o cache são guardados localmente neste navegador. Os links externos dependem da disponibilidade das páginas para cada modelo.</footer>
-</main>
-
-<script>
-"use strict";
-
-const API="https://fipe.parallelum.com.br/api/v2/cars/brands";
-const TTL=24*60*60*1000;
-const TIMEOUT=12000;
-const STATE_KEY="opinautos_fipe_pro_persistent_v3";
-const CACHE_PREFIX="opinautos_fipe_pro_cache_v3:";
-const $=id=>document.getElementById(id);
-
-let marcas=[],modelos=[],anos=[];
-let marcaAtual=null,modeloAtual=null,anoAtual=null;
-let cacheMem=new Map();
-let seqMarca=0,seqModelo=0,seqAno=0,seqDetalhe=0;
-let timerMarca,timerModelo,timerAno;
-
-function norm(v){return String(v||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim()}
-function slugify(v){return norm(v).replace(/[^a-z0-9\s-]/g,"").replace(/\s+/g,"-").replace(/-+/g,"-").replace(/^-|-$/g,"")}
-function showMessage(message,type=""){$("mensagem").className="status"+(type?" "+type:"");$("mensagem").textContent=message}
-function loading(message){const box=$("mensagem");box.className="status";box.replaceChildren();const s=document.createElement("span");s.className="spinner";box.append(s,document.createTextNode(message))}
-
-function readState(){try{return JSON.parse(localStorage.getItem(STATE_KEY)||"null")}catch{return null}}
-function saveState(){
- try{
-  localStorage.setItem(STATE_KEY,JSON.stringify({
-   brandCode:marcaAtual?.code||"",brandName:marcaAtual?.name||"",
-   modelCode:modeloAtual?.code||"",modelName:modeloAtual?.name||"",
-   yearCode:anoAtual?.code||"",yearName:anoAtual?.name||""
-  }));
- }catch(e){console.warn("Não foi possível salvar a seleção",e)}
-}
-function findSavedItem(items,code,name){
- if(!Array.isArray(items))return null;
- if(code!==undefined&&code!==null&&String(code)!==""){
-  const found=items.find(x=>String(x.code)===String(code));
-  if(found)return found;
- }
- return name?items.find(x=>norm(x.name)===norm(name))||null:null;
-}
-
-function readCache(key){
- if(cacheMem.has(key))return cacheMem.get(key);
- try{
-  const saved=JSON.parse(localStorage.getItem(CACHE_PREFIX+key)||"null");
-  if(!saved)return null;
-  if(Date.now()-saved.time>TTL){localStorage.removeItem(CACHE_PREFIX+key);return null}
-  cacheMem.set(key,saved.data);return saved.data;
- }catch{return null}
-}
-function writeCache(key,data){
- cacheMem.set(key,data);
- try{localStorage.setItem(CACHE_PREFIX+key,JSON.stringify({time:Date.now(),data}))}catch{}
-}
-async function getJSON(url,key,force=false){
- if(!force){const cached=readCache(key);if(cached!==null)return{data:cached,cached:true}}
- const controller=new AbortController();
- const timeout=setTimeout(()=>controller.abort(),TIMEOUT);
- try{
-  const response=await fetch(url,{signal:controller.signal,headers:{Accept:"application/json"}});
-  if(!response.ok){
-   if(response.status===429)throw Error("Limite de consultas da API atingido. Tente novamente mais tarde.");
-   throw Error("Erro HTTP "+response.status+" na consulta FIPE.");
-  }
-  const data=await response.json();
-  if(!Array.isArray(data)&&(!data||typeof data!=="object"))throw Error("A API retornou dados inválidos.");
-  writeCache(key,data);return{data,cached:false};
- }catch(error){
-  if(error.name==="AbortError")throw Error("Tempo limite excedido. Verifique a conexão.");
-  if(error instanceof TypeError)throw Error("Não foi possível conectar à API FIPE. Verifique a internet.");
-  throw error;
- }finally{clearTimeout(timeout)}
-}
-
-/* Autocomplete */
-function hideAllLists(except=""){
- for(const id of ["fieldMarca","fieldModelo","fieldAno"]){
-  if(id===except)continue;
-  const f=$(id);f.classList.remove("active");f.querySelector("input").setAttribute("aria-expanded","false");
- }
-}
-function showList(id){hideAllLists(id);const f=$(id);f.classList.add("active");f.querySelector("input").setAttribute("aria-expanded","true")}
-function closeList(id){const f=$(id);f.classList.remove("active");f.querySelector("input").setAttribute("aria-expanded","false")}
-
-function renderList(type){
- const c={
-  marca:{field:"fieldMarca",input:"buscaMarca",list:"listaMarcas",items:marcas},
-  modelo:{field:"fieldModelo",input:"buscaModelo",list:"listaModelos",items:modelos},
-  ano:{field:"fieldAno",input:"buscaAno",list:"listaAnos",items:anos}
- }[type];
- const input=$(c.input),list=$(c.list),q=norm(input.value);
- const matches=c.items.filter(x=>norm(x.name).includes(q)||norm(x.code).includes(q)).slice(0,100);
- list.replaceChildren();
- if(!matches.length){const e=document.createElement("div");e.className="result empty";e.textContent="Nenhum resultado encontrado.";list.append(e);return}
- const fragment=document.createDocumentFragment();
- for(const item of matches){
-  const b=document.createElement("button");b.type="button";b.className="result";b.setAttribute("role","option");
-  const name=document.createElement("span");name.textContent=item.name;
-  const small=document.createElement("small");small.textContent=type==="marca"?"Fabricante":type==="modelo"?"Modelo do veículo":"Ano-modelo e combustível";
-  b.append(name,small);
-  b.addEventListener("pointerdown",e=>e.preventDefault());
-  b.addEventListener("click",async()=>{
-   closeList(c.field);
-   if(type==="marca")await chooseBrand(item);
-   else if(type==="modelo")await chooseModel(item);
-   else await chooseYear(item);
-  });
-  fragment.append(b);
- }
- list.append(fragment);
-}
-function setupAutocomplete(type){
- const c={
-  marca:{field:"fieldMarca",input:"buscaMarca",list:"listaMarcas"},
-  modelo:{field:"fieldModelo",input:"buscaModelo",list:"listaModelos"},
-  ano:{field:"fieldAno",input:"buscaAno",list:"listaAnos"}
- }[type];
- const input=$(c.input);
- input.addEventListener("focus",()=>{if(!input.disabled){showList(c.field);renderList(type)}});
- input.addEventListener("click",()=>{if(!input.disabled){showList(c.field);renderList(type)}});
- input.addEventListener("input",()=>{
-  if(input.disabled)return;
-  showList(c.field);
-  if(type==="marca")clearTimeout(timerMarca);
-  if(type==="modelo")clearTimeout(timerModelo);
-  if(type==="ano")clearTimeout(timerAno);
-  const timer=setTimeout(()=>renderList(type),50);
-  if(type==="marca")timerMarca=timer;
-  if(type==="modelo")timerModelo=timer;
-  if(type==="ano")timerAno=timer;
- });
- input.addEventListener("keydown",e=>{
-  if(e.key==="Escape"){closeList(c.field);input.blur()}
-  if(e.key==="ArrowDown"){
-   const first=$(c.list).querySelector("button");
-   if(first){e.preventDefault();first.focus()}
-  }
- });
- input.addEventListener("blur",()=>setTimeout(()=>{
-  if(!$(c.field).contains(document.activeElement))closeList(c.field);
- },100));
-}
-
-/* Links externos */
-function resetLinks(){
- for(const id of ["Fuse","Owner","Tech","Guias","Opinions","Defeitos"]){
-  $("status"+id).textContent="Selecione o veículo";
-  $("link"+id).href="#";$("link"+id).classList.add("disabled");
- }
-}
-function resetFipeCard(){$("cardFipe").classList.add("hidden")}
-function getOpinautosBase(){
- if(!marcaAtual||!modeloAtual)return null;
- const brand=slugify(marcaAtual.name.replace(/^vw\s*-\s*/i,"").replace(/^gm\s*-\s*/i,""));
- const first=norm(modeloAtual.name).split(/\s+/)[0]||"";
- const model=slugify(first);
- return brand&&model?`https://www.opinautos.com.br/br/${brand}/${model}/`:null;
-}
-function enableLink(type,url){const a=$("link"+type);a.href=url;a.classList.remove("disabled")}
-function renderLinks(){
- if(!marcaAtual||!modeloAtual){resetLinks();return}
- const base=getOpinautosBase();if(!base){resetLinks();return}
- const first=norm(modeloAtual.name).split(/\s+/)[0]||"";
- if(anoAtual){
-  const year=String(anoAtual.code).split("-")[0];
-  enableLink("Fuse",base+"fusiveis/"+encodeURIComponent(year));
-  $("statusFuse").textContent="Modelo: "+first+" · Ano "+year;
- }else{
-  $("statusFuse").textContent="Selecione o ano";
-  $("linkFuse").href="#";$("linkFuse").classList.add("disabled");
- }
- enableLink("Owner",base+"manuais");$("statusOwner").textContent="Manual do proprietário · "+first;
- enableLink("Tech",base+"manuais/reparo");$("statusTech").textContent="Manual técnico · "+first;
- enableLink("Guias",base+"guias");$("statusGuias").textContent="Guias e dicas · "+first;
- enableLink("Opinions",base+"opinioes");$("statusOpinions").textContent="Experiências de proprietários · "+first;
- enableLink("Defeitos",base+"defeitos");$("statusDefeitos").textContent="Problemas relatados · "+first;
-}
-
-function manufacturerDomain(name){
- const n=norm(name);
- const rules=[
-  [/volkswagen|vw\b/,"volkswagen.com.br"],[/chevrolet|gm\b/,"chevrolet.com.br"],
-  [/fiat/,"fiat.com.br"],[/toyota/,"toyota.com.br"],[/honda/,"honda.com.br"],
-  [/hyundai/,"hyundai.com.br"],[/renault/,"renault.com.br"],[/ford/,"ford.com.br"],
-  [/nissan/,"nissan.com.br"],[/jeep/,"jeep.com.br"],[/citroen/,"citroen.com.br"],
-  [/mitsubishi/,"mitsubishimotors.com.br"],[/peugeot/,"peugeot.com.br"],
-  [/bmw/,"bmw.com.br"],[/mercedes/,"mercedes-benz.com.br"],[/audi/,"audi.com.br"],
-  [/kia/,"kia.com.br"],[/volvo/,"volvocars.com"],[/caoa chery|chery/,"caoachery.com.br"],
-  [/byd/,"byd.com"],[/ram/,"ram.com"],[/iveco/,"iveco.com.br"],
-  [/porsche/,"porsche.com.br"],[/subaru/,"subaru.com.br"],[/suzuki/,"suzuki.com.br"],
-  [/land rover|land-rover/,"landrover.com.br"]
- ];
- return rules.find(([r])=>r.test(n))?.[1]||"";
-}
-function renderLogo(brand){
- const box=$("logoBox");box.replaceChildren();const domain=manufacturerDomain(brand?.name||"");
- if(!domain){const f=document.createElement("span");f.className="logo-fallback";f.textContent="🚘";box.append(f);return}
- const img=document.createElement("img");img.alt="Logo da fabricante "+brand.name;img.loading="lazy";img.referrerPolicy="no-referrer";
- img.src="https://www.google.com/s2/favicons?domain="+encodeURIComponent(domain)+"&sz=128";
- img.onerror=()=>{box.replaceChildren();const f=document.createElement("span");f.className="logo-fallback";f.textContent="🚘";box.append(f)};
- box.append(img);
-}
-function webmotorsBrandSlug(name){
- const n=norm(name);
- if(n.includes("volkswagen")||n.startsWith("vw"))return"volkswagen";
- if(n.includes("chevrolet")||n.startsWith("gm"))return"chevrolet";
- return slugify(name.replace(/^vw\s*-\s*/i,"").replace(/^gm\s*-\s*/i,""));
-}
-function webmotorsModelSlug(name){
- const n=norm(name);
- const known=[
-  [/\bamarok\b/,"amarok"],[/\bgol\b/,"gol"],[/\bpolo\b/,"polo"],[/\bvirtus\b/,"virtus"],
-  [/\bt-cross\b/,"t-cross"],[/\bnivus\b/,"nivus"],[/\bsaveiro\b/,"saveiro"],[/\bjetta\b/,"jetta"],
-  [/\btaos\b/,"taos"],[/\btiguan\b/,"tiguan"],[/\bcorolla\b/,"corolla"],[/\bhilux\b/,"hilux"],
-  [/\bonix\b/,"onix"],[/\btracker\b/,"tracker"],[/\bcruze\b/,"cruze"],[/\bstrada\b/,"strada"],
-  [/\bargo\b/,"argo"],[/\bmobi\b/,"mobi"],[/\buno\b/,"uno"],[/\bkwid\b/,"kwid"],[/\bduster\b/,"duster"]
- ];
- return known.find(([r])=>r.test(n))?.[1]||slugify(name);
-}
-function setWebmotorsLinks(){
- if(!marcaAtual)return;
- const brand=webmotorsBrandSlug(marcaAtual.name);
- const model=modeloAtual?webmotorsModelSlug(modeloAtual.name):"";
- $("wmMarca").href="https://www.webmotors.com.br/tabela-fipe/carros/"+brand;
- $("wmModelo").href="https://www.webmotors.com.br/tabela-fipe/carros/"+brand+(model?"/"+model:"");
- $("wmBusca").href="https://www.google.com/search?q="+encodeURIComponent("site:webmotors.com.br "+marcaAtual.name+" "+(modeloAtual?.name||"")+" anúncios");
- $("wmModelo").classList.toggle("hidden",!modeloAtual);
-}
-function renderFipe(detail){
- $("cardFipe").classList.remove("hidden");
- $("fipeTitulo").textContent=(detail.brand||marcaAtual?.name||"")+" "+(detail.model||modeloAtual?.name||"");
- $("fipeSubtitulo").textContent="Ano-modelo "+(detail.modelYear??anoAtual?.name??"—")+" · "+(detail.fuel||"Combustível não informado");
- $("fipePreco").textContent=detail.price||"Preço indisponível";
- $("fipeReferencia").textContent="Referência: "+(detail.referenceMonth||"não informada");
- $("fipeMarca").textContent=detail.brand||marcaAtual?.name||"—";
- $("fipeModelo").textContent=detail.model||modeloAtual?.name||"—";
- $("fipeAno").textContent=String(detail.modelYear??anoAtual?.name??"—");
- $("fipeCombustivel").textContent=detail.fuel||"—";
- $("fipeCodigo").textContent=detail.codeFipe||"—";
- $("fipeMes").textContent=detail.referenceMonth||"—";
- renderLogo(marcaAtual);setWebmotorsLinks();
-}
-async function loadDetail(force=false){
- if(!marcaAtual||!modeloAtual||!anoAtual)return;
- const request=++seqDetalhe;
- const key=`detail_${marcaAtual.code}_${modeloAtual.code}_${anoAtual.code}`;
- loading("Consultando preço e detalhes FIPE...");
- try{
-  const result=await getJSON(`${API}/${encodeURIComponent(marcaAtual.code)}/models/${encodeURIComponent(modeloAtual.code)}/years/${encodeURIComponent(anoAtual.code)}`,key,force);
-  if(request!==seqDetalhe)return;
-  renderFipe(result.data);
-  showMessage("Dados FIPE carregados"+(result.cached?" do cache local.":"."),"success");
- }catch(error){
-  if(request!==seqDetalhe)return;
-  $("cardFipe").classList.remove("hidden");renderLogo(marcaAtual);
-  $("fipeTitulo").textContent=marcaAtual.name+" "+modeloAtual.name;
-  $("fipeSubtitulo").textContent="Detalhes FIPE indisponíveis";
-  $("fipePreco").textContent="Indisponível";$("fipeReferencia").textContent=error.message;
-  $("fipeMarca").textContent=marcaAtual.name;$("fipeModelo").textContent=modeloAtual.name;
-  $("fipeAno").textContent=anoAtual.name;$("fipeCombustivel").textContent="—";
-  $("fipeCodigo").textContent="—";$("fipeMes").textContent="—";
-  setWebmotorsLinks();showMessage(error.message,"error");
- }
-}
-
-/* Limpeza dos campos dependentes */
-function resetModelAndYear(){
- ++seqModelo;++seqAno;++seqDetalhe;
- modelos=[];anos=[];modeloAtual=null;anoAtual=null;
- $("buscaModelo").value="";$("buscaModelo").disabled=true;$("buscaModelo").placeholder="Selecione primeiro a fabricante";
- $("buscaAno").value="";$("buscaAno").disabled=true;$("buscaAno").placeholder="Selecione primeiro o modelo";
- $("listaModelos").replaceChildren();$("listaAnos").replaceChildren();
- resetFipeCard();resetLinks();
-}
-
-/*
- * A restauração recebe um retrato imutável dos dados anteriores.
- * Nenhuma etapa intermediária o substitui no localStorage.
- */
-async function chooseBrand(item,restoreState=null,force=false){
- marcaAtual=item;$("buscaMarca").value=item.name;
- hideAllLists();resetModelAndYear();setWebmotorsLinks();
- if(!restoreState)saveState();
-
- const request=++seqModelo;
- loading("Carregando modelos de "+item.name+"...");
- try{
-  const result=await getJSON(`${API}/${encodeURIComponent(item.code)}/models`,"models_"+item.code,force);
-  if(request!==seqModelo)return;
-  modelos=result.data.map(x=>({code:String(x.code),name:x.name})).sort((a,b)=>a.name.localeCompare(b.name,"pt-BR"));
-  $("buscaModelo").disabled=false;$("buscaModelo").placeholder="Toque para escolher ou digite um modelo";
-  showMessage(modelos.length+" modelos disponíveis. Toque no campo para pesquisar.","success");
-
-  if(restoreState){
-   const old=findSavedItem(modelos,restoreState.modelCode,restoreState.modelName);
-   if(old)await chooseModel(old,restoreState,force);
-   else saveState();
-  }
- }catch(error){if(request===seqModelo)showMessage(error.message,"error")}
-}
-
-async function chooseModel(item,restoreState=null,force=false){
- modeloAtual=item;anoAtual=null;
- $("buscaModelo").value=item.name;$("buscaAno").value="";
- hideAllLists();++seqAno;++seqDetalhe;anos=[];
- resetFipeCard();resetLinks();setWebmotorsLinks();
- if(!restoreState)saveState();
-
- const request=++seqAno;
- $("buscaAno").disabled=true;$("buscaAno").placeholder="Carregando anos...";
- loading("Carregando anos e combustíveis...");
- try{
-  const result=await getJSON(`${API}/${encodeURIComponent(marcaAtual.code)}/models/${encodeURIComponent(item.code)}/years`,"years_"+marcaAtual.code+"_"+item.code,force);
-  if(request!==seqAno)return;
-  anos=result.data.map(x=>({code:String(x.code),name:x.name}));
-  $("buscaAno").disabled=false;$("buscaAno").placeholder="Toque para selecionar ano e combustível";
-  showMessage(anos.length+" opções de ano/combustível disponíveis.","success");
-
-  if(restoreState){
-   const old=findSavedItem(anos,restoreState.yearCode,restoreState.yearName);
-   if(old)await chooseYear(old,false);
-   // Só salva o estado depois de completar a tentativa de restauração.
-   saveState();
-  }
- }catch(error){
-  if(request===seqAno){$("buscaAno").placeholder="Não foi possível carregar os anos";showMessage(error.message,"error")}
- }
-}
-
-async function chooseYear(item,persist=true){
- anoAtual=item;$("buscaAno").value=item.name;
- hideAllLists();renderLinks();
- if(persist)saveState();
- await loadDetail();
-}
-
-function clearSelection(){
- ++seqMarca;++seqModelo;++seqAno;++seqDetalhe;
- marcaAtual=null;modeloAtual=null;anoAtual=null;modelos=[];anos=[];
- $("buscaMarca").value="";$("buscaModelo").value="";$("buscaAno").value="";
- $("buscaModelo").disabled=true;$("buscaAno").disabled=true;
- $("buscaModelo").placeholder="Selecione primeiro a fabricante";
- $("buscaAno").placeholder="Selecione primeiro o modelo";
- hideAllLists();resetFipeCard();resetLinks();
- $("wmMarca").href="#";$("wmModelo").href="#";$("wmBusca").href="#";$("wmModelo").classList.add("hidden");
- try{localStorage.removeItem(STATE_KEY)}catch{}
- showMessage("Seleção apagada. O cache FIPE foi mantido.");
-}
-
-/* Inicialização: lê o estado uma única vez antes de qualquer gravação. */
-async function loadBrands(force=false){
- const request=++seqMarca;
- const saved=readState(); // cópia capturada antes de alterar qualquer estado
- loading("Carregando fabricantes...");
- try{
-  const result=await getJSON(API,"brands",force);
-  if(request!==seqMarca)return;
-  marcas=result.data.map(x=>({code:String(x.code),name:x.name})).sort((a,b)=>a.name.localeCompare(b.name,"pt-BR"));
-  showMessage("Fabricantes carregadas. Toque no campo para pesquisar.","success");
-
-  if(saved?.brandCode||saved?.brandName){
-   const old=findSavedItem(marcas,saved.brandCode,saved.brandName);
-   if(old){await chooseBrand(old,saved,false);return}
-  }
- }catch(error){if(request===seqMarca)showMessage(error.message,"error")}
-}
-
-setupAutocomplete("marca");
-setupAutocomplete("modelo");
-setupAutocomplete("ano");
-
-document.addEventListener("pointerdown",event=>{
- if(!event.target.closest(".field"))hideAllLists();
-});
-document.addEventListener("keydown",event=>{
- if(event.key==="Escape")hideAllLists();
-});
-
-$("btnLimpar").addEventListener("click",clearSelection);
-
-/* Atualiza dados sem perder a seleção atual. */
-$("btnAtualizar").addEventListener("click",async()=>{
- const savedSelection={
-  brandCode:marcaAtual?.code||"",brandName:marcaAtual?.name||"",
-  modelCode:modeloAtual?.code||"",modelName:modeloAtual?.name||"",
-  yearCode:anoAtual?.code||"",yearName:anoAtual?.name||""
- };
-
- try{
-  const keys=[];
-  for(let i=0;i<localStorage.length;i++){
-   const key=localStorage.key(i);
-   if(key&&key.startsWith(CACHE_PREFIX))keys.push(key);
-  }
-  keys.forEach(key=>localStorage.removeItem(key));
- }catch{}
- cacheMem.clear();
-
- if(!savedSelection.brandCode){
-  await loadBrands(true);
-  return;
- }
-
- const brand=findSavedItem(marcas,savedSelection.brandCode,savedSelection.brandName);
- if(!brand){await loadBrands(true);return}
-
- await chooseBrand(brand,savedSelection,true);
- if(modeloAtual&&anoAtual)await loadDetail(true);
-});
-
-/* Restaura fabricante, modelo e ano sem sobrescrever os dados antigos. */
-resetLinks();
-loadBrands();
-</script>
-</body>
-</html>
+<!DOCTYPE html>  <html lang="pt-BR">  
+<head>  
+<meta charset="UTF-8">  
+<meta name="viewport" content="width=device-width, initial-scale=1">  
+<meta name="theme-color" content="#f3f6fc">  
+<title>Opinautos FIPE Pro</title>  <style>  
+:root {  
+  --blue:#2563eb;  
+  --green:#059669;  
+  --orange:#d97706;  
+  --red:#dc2626;  
+  --purple:#7c3aed;  
+  --cyan:#0284c7;  
+  --ink:#172033;  
+  --muted:#64748b;  
+  --line:#e2e8f0;  
+  --bg:#f3f6fc;  
+}  
+  
+*{box-sizing:border-box}  
+  
+body{  
+  margin:0;  
+  padding:14px;  
+  background:var(--bg);  
+  color:var(--ink);  
+  font-family:system-ui,-apple-system,"Segoe UI",sans-serif;  
+}  
+  
+button,input{font:inherit}  
+  
+.app{  
+  max-width:780px;  
+  margin:auto;  
+  padding:22px;  
+  background:#fff;  
+  border-radius:22px;  
+  box-shadow:0 14px 40px #17203312;  
+}  
+  
+header{text-align:center;margin-bottom:25px}  
+header h1{font-size:clamp(1.4rem,5vw,1.9rem);margin:0;font-weight:850}  
+header p{color:var(--muted);font-size:.88rem;line-height:1.5}  
+  
+.field{margin:25px 0;position:relative}  
+  
+label{  
+  display:block;  
+  font-size:.82rem;  
+  font-weight:700;  
+  margin:0 0 7px 3px;  
+}  
+  
+.input-wrap{position:relative}  
+  
+.input-wrap input{  
+  display:block;  
+  width:100%;  
+  min-height:56px;  
+  padding:15px 44px 15px 15px;  
+  border:2px solid #34343d;  
+  border-radius:14px;  
+  background:white;  
+  color:var(--ink);  
+  outline:none;  
+  font-size:1rem;  
+}  
+  
+.input-wrap input:focus{  
+  border-color:var(--blue);  
+  box-shadow:0 0 0 3px #2563eb18;  
+}  
+  
+.input-wrap input:disabled{  
+  background:#f1f5f9;  
+  color:#94a3b8;  
+  cursor:not-allowed;  
+}  
+  
+.field-icon{  
+  position:absolute;  
+  right:15px;  
+  top:50%;  
+  transform:translateY(-50%);  
+  pointer-events:none;  
+  color:var(--muted);  
+}  
+  
+.hint{  
+  font-size:.73rem;  
+  color:var(--muted);  
+  margin:6px 3px 0;  
+  line-height:1.45;  
+}  
+  
+/* A lista só aparece com o input em foco. */  
+.results{  
+  display:none;  
+  position:absolute;  
+  top:calc(100% + 5px);  
+  left:0;  
+  right:0;  
+  z-index:100;  
+  background:#fff;  
+  border:1px solid #cbd5e1;  
+  border-radius:13px;  
+  box-shadow:0 12px 28px #17203320;  
+  max-height:250px;  
+  overflow-y:auto;  
+  overscroll-behavior:contain;  
+}  
+  
+.field.active .results{display:block}  
+  
+.result{  
+  display:block;  
+  width:100%;  
+  padding:13px 14px;  
+  background:white;  
+  color:var(--ink);  
+  border:0;  
+  border-bottom:1px solid #f1f5f9;  
+  text-align:left;  
+  cursor:pointer;  
+  font-size:.88rem;  
+  overflow-wrap:anywhere;  
+}  
+  
+.result:last-child{border-bottom:0}  
+.result:hover,.result:focus{background:#eff6ff;outline:none}  
+.result small{display:block;color:var(--muted);font-size:.73rem;margin-top:3px}  
+.result.empty{color:var(--muted);cursor:default}  
+.result.empty:hover{background:white}  
+  
+.vehicle{  
+  border:1px solid #dbe5f2;  
+  border-radius:19px;  
+  overflow:hidden;  
+  background:linear-gradient(140deg,#fff,#f7faff);  
+  margin-top:25px;  
+}  
+  
+.vehicle-top{  
+  padding:19px;  
+  display:grid;  
+  grid-template-columns:70px minmax(0,1fr);  
+  align-items:center;  
+  gap:14px;  
+}  
+  
+.logo{  
+  width:70px;  
+  height:70px;  
+  border-radius:17px;  
+  background:white;  
+  border:1px solid #dfe7f2;  
+  display:flex;  
+  align-items:center;  
+  justify-content:center;  
+  overflow:hidden;  
+}  
+  
+.logo img{width:100%;height:100%;object-fit:contain;padding:7px}  
+.logo-fallback{font-size:2rem}  
+  
+.pill{  
+  display:inline-block;  
+  border-radius:99px;  
+  background:#eff6ff;  
+  color:#1d4ed8;  
+  padding:4px 9px;  
+  font-size:.68rem;  
+  font-weight:800;  
+}  
+  
+.vehicle-name{min-width:0}  
+.vehicle-name h2{font-size:1.1rem;line-height:1.35;margin:7px 0;overflow-wrap:anywhere}  
+.vehicle-name p{font-size:.8rem;color:var(--muted);margin:0;line-height:1.5}  
+  
+.price-area{  
+  padding:16px 19px;  
+  background:#ecfdf5;  
+  border-top:1px solid #d1fae5;  
+  border-bottom:1px solid #d1fae5;  
+}  
+  
+.price-label{  
+  font-size:.72rem;  
+  color:#047857;  
+  font-weight:800;  
+  text-transform:uppercase;  
+  letter-spacing:.4px;  
+}  
+  
+.price{  
+  font-size:clamp(1.65rem,7vw,2.2rem);  
+  font-weight:850;  
+  color:#047857;  
+  margin:4px 0;  
+  overflow-wrap:anywhere;  
+}  
+  
+.ref{font-size:.75rem;color:#047857;line-height:1.5}  
+  
+.details{  
+  display:grid;  
+  grid-template-columns:repeat(2,minmax(0,1fr));  
+  gap:9px;  
+  padding:16px 19px;  
+}  
+  
+.detail{  
+  background:#f8fafc;  
+  border:1px solid #edf1f7;  
+  border-radius:11px;  
+  padding:11px;  
+  min-width:0;  
+}  
+  
+.detail span{display:block;font-size:.7rem;color:var(--muted);margin-bottom:5px}  
+.detail strong{font-size:.83rem;overflow-wrap:anywhere}  
+  
+.vehicle-actions{  
+  display:grid;  
+  grid-template-columns:repeat(2,minmax(0,1fr));  
+  gap:9px;  
+  padding:0 19px 19px;  
+}  
+  
+.btn{  
+  display:inline-flex;  
+  justify-content:center;  
+  align-items:center;  
+  gap:7px;  
+  border:0;  
+  border-radius:11px;  
+  padding:12px;  
+  text-decoration:none;  
+  font-size:.81rem;  
+  font-weight:750;  
+  cursor:pointer;  
+  text-align:center;  
+}  
+  
+.btn-blue{background:var(--blue);color:#fff}  
+.btn-dark{background:#172033;color:#fff}  
+.btn-light{background:#f1f5f9;color:#334155;border:1px solid var(--line)}  
+  
+.sections{  
+  display:grid;  
+  grid-template-columns:1fr;  
+  gap:12px;  
+  margin-top:23px;  
+}  
+  
+.card{  
+  border:2px solid var(--line);  
+  border-radius:15px;  
+  padding:15px;  
+  text-align:center;  
+  background:#fff;  
+  min-width:0;  
+  display:flex;  
+  flex-direction:column;  
+  align-items:stretch;  
+}  
+  
+.card-icon{font-size:1.8rem}  
+.card h3{font-size:.93rem;margin:7px 0}  
+.card p{  
+  font-size:.75rem;  
+  color:var(--muted);  
+  min-height:34px;  
+  line-height:1.45;  
+  overflow-wrap:anywhere;  
+  flex:1;  
+}  
+  
+.card a{  
+  display:block;  
+  margin-top:9px;  
+  padding:11px 8px;  
+  border-radius:9px;  
+  color:white;  
+  text-decoration:none;  
+  font-size:.79rem;  
+  font-weight:750;  
+}  
+  
+.card a.disabled{pointer-events:none;opacity:.42}  
+  
+.card--fuse{border-color:#bfdbfe}  
+.card--fuse a{background:var(--blue)}  
+.card--owner{border-color:#a7f3d0}  
+.card--owner a{background:var(--green)}  
+.card--tech{border-color:#fde68a}  
+.card--tech a{background:var(--orange)}  
+.card--guides{border-color:#bae6fd}  
+.card--guides a{background:var(--cyan)}  
+.card--opinions{border-color:#c4b5fd}  
+.card--opinions a{background:var(--purple)}  
+.card--defeitos{border-color:#fecaca}  
+.card--defeitos a{background:var(--red)}  
+  
+.toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-top:20px}  
+.toolbar .btn{flex:1}  
+  
+.status{  
+  margin-top:16px;  
+  font-size:.82rem;  
+  line-height:1.5;  
+  text-align:center;  
+  color:var(--muted);  
+  overflow-wrap:anywhere;  
+}  
+  
+.status.error{color:#b91c1c}  
+.status.success{color:#047857}  
+  
+.spinner{  
+  display:inline-block;  
+  width:13px;  
+  height:13px;  
+  border:2px solid #cbd5e1;  
+  border-top-color:var(--blue);  
+  border-radius:50%;  
+  animation:spin .7s linear infinite;  
+  margin-right:7px;  
+  vertical-align:middle;  
+}  
+  
+@keyframes spin{to{transform:rotate(360deg)}}  
+.hidden{display:none!important}  
+  
+footer{  
+  margin-top:22px;  
+  text-align:center;  
+  font-size:.7rem;  
+  line-height:1.55;  
+  color:#94a3b8;  
+}  
+  
+@media(min-width:560px){  
+  .sections{grid-template-columns:repeat(2,minmax(0,1fr))}  
+}  
+  
+@media(min-width:720px){  
+  .sections{grid-template-columns:repeat(3,minmax(0,1fr))}  
+}  
+  
+@media(max-width:390px){  
+  body{padding:8px}  
+  .app{padding:14px}  
+  .vehicle-top{grid-template-columns:56px minmax(0,1fr);gap:10px;padding:14px}  
+  .logo{width:56px;height:56px}  
+  .vehicle-actions{grid-template-columns:1fr;padding:0 12px 14px}  
+  .details{padding:12px;gap:7px}  
+  .detail{padding:9px}  
+}  
+  
+@media(prefers-reduced-motion:reduce){  
+  *,*::before,*::after{animation:none!important}  
+}  
+</style>  </head>  <body>  
+<main class="app">  <header>  
+  <h1>🔧 Opinautos FIPE Pro</h1>  
+  <p>Pesquise o veículo, consulte a referência FIPE e acesse materiais técnicos, guias e defeitos relatados.</p>  
+</header>  <div class="field" id="fieldMarca">  
+  <label for="buscaMarca">1. Fabricante</label>  
+  <div class="input-wrap">  
+    <input id="buscaMarca" type="text" placeholder="Toque para selecionar a fabricante" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="listaMarcas">  
+    <span class="field-icon">⌄</span>  
+  </div>  
+  <div class="results" id="listaMarcas" role="listbox"></div>  
+  <p class="hint">Toque no campo para ver as opções ou digite para filtrar.</p>  
+</div>  <div class="field" id="fieldModelo">  
+  <label for="buscaModelo">2. Modelo do veículo</label>  
+  <div class="input-wrap">  
+    <input id="buscaModelo" type="text" placeholder="Selecione primeiro a fabricante" autocomplete="off" disabled role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="listaModelos">  
+    <span class="field-icon">⌄</span>  
+  </div>  
+  <div class="results" id="listaModelos" role="listbox"></div>  
+  <p class="hint">A lista será filtrada automaticamente conforme você digitar.</p>  
+</div>  <div class="field" id="fieldAno">  
+  <label for="buscaAno">3. Ano e combustível</label>  
+  <div class="input-wrap">  
+    <input id="buscaAno" type="text" placeholder="Selecione primeiro o modelo" autocomplete="off" disabled role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="listaAnos">  
+    <span class="field-icon">⌄</span>  
+  </div>  
+  <div class="results" id="listaAnos" role="listbox"></div>  
+  <p class="hint">Selecione o ano-modelo e o combustível correspondente.</p>  
+</div>  <section class="vehicle hidden" id="cardFipe">  
+  <div class="vehicle-top">  
+    <div class="logo" id="logoBox"><span class="logo-fallback">🚘</span></div>  
+    <div class="vehicle-name">  
+      <span class="pill">CONSULTA FIPE</span>  
+      <h2 id="fipeTitulo">Veículo</h2>  
+      <p id="fipeSubtitulo">Informações do veículo</p>  
+    </div>  
+  </div>    <div class="price-area">  
+    <div class="price-label">Preço médio FIPE</div>  
+    <div class="price" id="fipePreco">Consultando...</div>  
+    <div class="ref" id="fipeReferencia">Aguardando resposta da API</div>  
+  </div>    <div class="details">  
+    <div class="detail"><span>Fabricante</span><strong id="fipeMarca">—</strong></div>  
+    <div class="detail"><span>Modelo</span><strong id="fipeModelo">—</strong></div>  
+    <div class="detail"><span>Ano do modelo</span><strong id="fipeAno">—</strong></div>  
+    <div class="detail"><span>Combustível</span><strong id="fipeCombustivel">—</strong></div>  
+    <div class="detail"><span>Código FIPE</span><strong id="fipeCodigo">—</strong></div>  
+    <div class="detail"><span>Referência</span><strong id="fipeMes">—</strong></div>  
+  </div>    <div class="vehicle-actions">  
+    <a class="btn btn-blue" id="wmMarca" href="#" target="_blank" rel="noopener noreferrer">🌐 FIPE da marca</a>  
+    <a class="btn btn-dark" id="wmModelo" href="#" target="_blank" rel="noopener noreferrer">🚘 FIPE deste veículo</a>  
+    <a class="btn btn-light" id="wmBusca" href="#" target="_blank" rel="noopener noreferrer">🔎 Anúncios na Webmotors</a>  
+  </div>  
+</section>  <section class="sections" aria-label="Categorias técnicas do Opinautos">    <article class="card card--fuse">  
+    <div class="card-icon">⚡</div>  
+    <h3>Diagrama de fusíveis</h3>  
+    <p id="statusFuse">Selecione o veículo</p>  
+    <a id="linkFuse" class="disabled" href="#" target="_blank" rel="noopener noreferrer">Abrir fusíveis ↗</a>  
+  </article>    <article class="card card--owner">  
+    <div class="card-icon">📘</div>  
+    <h3>Manual do proprietário</h3>  
+    <p id="statusOwner">Selecione o veículo</p>  
+    <a id="linkOwner" class="disabled" href="#" target="_blank" rel="noopener noreferrer">Abrir manual ↗</a>  
+  </article>    <article class="card card--tech">  
+    <div class="card-icon">🔧</div>  
+    <h3>Manual técnico</h3>  
+    <p id="statusTech">Selecione o veículo</p>  
+    <a id="linkTech" class="disabled" href="#" target="_blank" rel="noopener noreferrer">Abrir manual técnico ↗</a>  
+  </article>    <article class="card card--guides">  
+    <div class="card-icon">📚</div>  
+    <h3>Guias úteis</h3>  
+    <p id="statusGuias">Selecione o veículo</p>  
+    <a id="linkGuias" class="disabled" href="#" target="_blank" rel="noopener noreferrer">Abrir guias ↗</a>  
+  </article>    <article class="card card--opinions">  
+    <div class="card-icon">💬</div>  
+    <h3>Opiniões de proprietários</h3>  
+    <p id="statusOpinions">Selecione o veículo</p>  
+    <a id="linkOpinions" class="disabled" href="#" target="_blank" rel="noopener noreferrer">Ver opiniões ↗</a>  
+  </article>    <article class="card card--defeitos">  
+    <div class="card-icon">🚨</div>  
+    <h3>Defeitos e problemas</h3>  
+    <p id="statusDefeitos">Selecione o veículo</p>  
+    <a id="linkDefeitos" class="disabled" href="#" target="_blank" rel="noopener noreferrer">Ver defeitos ↗</a>  
+  </article>  </section>  <div class="toolbar">  
+  <button type="button" class="btn btn-light" id="btnLimpar">Limpar seleção</button>  
+  <button type="button" class="btn btn-light" id="btnAtualizar">Atualizar FIPE</button>  
+</div>  <div id="mensagem" class="status" role="status" aria-live="polite">Inicializando...</div>  <footer>  
+  A seleção do veículo e o cache são guardados localmente neste navegador. Os links externos dependem da disponibilidade das páginas para cada modelo.  
+</footer>  </main>  <script>  
+"use strict";  
+  
+const API = "https://fipe.parallelum.com.br/api/v2/cars/brands";  
+const TTL = 24 * 60 * 60 * 1000;  
+const TIMEOUT = 12000;  
+const STATE_KEY = "opinautos_fipe_pro_persistent_v3";  
+const CACHE_PREFIX = "opinautos_fipe_pro_cache_v3:";  
+  
+const $ = id => document.getElementById(id);  
+  
+let marcas = [];  
+let modelos = [];  
+let anos = [];  
+  
+let marcaAtual = null;  
+let modeloAtual = null;  
+let anoAtual = null;  
+  
+let cacheMem = new Map();  
+let seqMarca = 0;  
+let seqModelo = 0;  
+let seqAno = 0;  
+let seqDetalhe = 0;  
+  
+let timerMarca;  
+let timerModelo;  
+let timerAno;  
+  
+function norm(value) {  
+  return String(value || "")  
+    .normalize("NFD")  
+    .replace(/[\u0300-\u036f]/g, "")  
+    .toLowerCase()  
+    .trim();  
+}  
+  
+function slugify(value) {  
+  return norm(value)  
+    .replace(/[^a-z0-9\s-]/g, "")  
+    .replace(/\s+/g, "-")  
+    .replace(/-+/g, "-")  
+    .replace(/^-|-$/g, "");  
+}  
+  
+function showMessage(message, type = "") {  
+  $("mensagem").className = "status" + (type ? " " + type : "");  
+  $("mensagem").textContent = message;  
+}  
+  
+function loading(message) {  
+  const box = $("mensagem");  
+  box.className = "status";  
+  box.replaceChildren();  
+  
+  const spinner = document.createElement("span");  
+  spinner.className = "spinner";  
+  box.append(spinner, document.createTextNode(message));  
+}  
+  
+function readCache(key) {  
+  if (cacheMem.has(key)) return cacheMem.get(key);  
+  
+  try {  
+    const saved = JSON.parse(localStorage.getItem(CACHE_PREFIX + key) || "null");  
+    if (!saved) return null;  
+  
+    if (Date.now() - saved.time > TTL) {  
+      localStorage.removeItem(CACHE_PREFIX + key);  
+      return null;  
+    }  
+  
+    cacheMem.set(key, saved.data);  
+    return saved.data;  
+  } catch {  
+    return null;  
+  }  
+}  
+  
+function writeCache(key, data) {  
+  cacheMem.set(key, data);  
+  
+  try {  
+    localStorage.setItem(  
+      CACHE_PREFIX + key,  
+      JSON.stringify({time:Date.now(),data})  
+    );  
+  } catch {}  
+}  
+  
+async function getJSON(url, key, force = false) {  
+  if (!force) {  
+    const cached = readCache(key);  
+    if (cached) return {data:cached,cached:true};  
+  }  
+  
+  const controller = new AbortController();  
+  const timeout = setTimeout(() => controller.abort(), TIMEOUT);  
+  
+  try {  
+    const response = await fetch(url, {  
+      signal:controller.signal,  
+      headers:{Accept:"application/json"}  
+    });  
+  
+    if (!response.ok) {  
+      if (response.status === 429) {  
+        throw Error("Limite de consultas da API atingido. Tente novamente mais tarde.");  
+      }  
+      throw Error("Erro HTTP " + response.status + " na consulta FIPE.");  
+    }  
+  
+    const data = await response.json();  
+  
+    if (!Array.isArray(data) && (!data || typeof data !== "object")) {  
+      throw Error("A API retornou dados inválidos.");  
+    }  
+  
+    writeCache(key,data);  
+    return {data,cached:false};  
+  } catch (error) {  
+    if (error.name === "AbortError") {  
+      throw Error("Tempo limite excedido. Verifique a conexão.");  
+    }  
+    if (error instanceof TypeError) {  
+      throw Error("Não foi possível conectar à API FIPE. Verifique a internet.");  
+    }  
+    throw error;  
+  } finally {  
+    clearTimeout(timeout);  
+  }  
+}  
+  
+/* Persistência da seleção entre atualizações e reaberturas. */  
+function saveState() {  
+  try {  
+    localStorage.setItem(STATE_KEY, JSON.stringify({  
+      brandCode:marcaAtual?.code || "",  
+      brandName:marcaAtual?.name || "",  
+      modelCode:modeloAtual?.code || "",  
+      modelName:modeloAtual?.name || "",  
+      yearCode:anoAtual?.code || "",  
+      yearName:anoAtual?.name || ""  
+    }));  
+  } catch {}  
+}  
+  
+function readState() {  
+  try {  
+    return JSON.parse(localStorage.getItem(STATE_KEY) || "null");  
+  } catch {  
+    return null;  
+  }  
+}  
+  
+function hideAllLists(exceptId = "") {  
+  for (const id of ["fieldMarca","fieldModelo","fieldAno"]) {  
+    const field = $(id);  
+    if (id !== exceptId) {  
+      field.classList.remove("active");  
+      const input = field.querySelector("input");  
+      input.setAttribute("aria-expanded","false");  
+    }  
+  }  
+}  
+  
+function showList(fieldId) {  
+  hideAllLists(fieldId);  
+  
+  const field = $(fieldId);  
+  field.classList.add("active");  
+  field.querySelector("input").setAttribute("aria-expanded","true");  
+}  
+  
+function closeList(fieldId) {  
+  const field = $(fieldId);  
+  field.classList.remove("active");  
+  field.querySelector("input").setAttribute("aria-expanded","false");  
+}  
+  
+/*  
+ * A lista só é exibida quando o campo está em foco.  
+ * Clique nas opções não perde o foco antes da seleção.  
+ */  
+function renderList(type) {  
+  const config = {  
+    marca:{  
+      field:"fieldMarca",  
+      input:"buscaMarca",  
+      list:"listaMarcas",  
+      items:marcas,  
+      selected:marcaAtual,  
+      placeholder:"Digite para pesquisar fabricantes..."  
+    },  
+    modelo:{  
+      field:"fieldModelo",  
+      input:"buscaModelo",  
+      list:"listaModelos",  
+      items:modelos,  
+      selected:modeloAtual,  
+      placeholder:"Digite para pesquisar modelos..."  
+    },  
+    ano:{  
+      field:"fieldAno",  
+      input:"buscaAno",  
+      list:"listaAnos",  
+      items:anos,  
+      selected:anoAtual,  
+      placeholder:"Digite o ano ou combustível..."  
+    }  
+  }[type];  
+  
+  const input = $(config.input);  
+  const list = $(config.list);  
+  const query = norm(input.value);  
+  
+  const matches = config.items.filter(item => {  
+    if (!query) return true;  
+  
+    return norm(item.name).includes(query) ||  
+           norm(item.code).includes(query);  
+  }).slice(0,100);  
+  
+  list.replaceChildren();  
+  
+  if (!matches.length) {  
+    const empty = document.createElement("div");  
+    empty.className = "result empty";  
+    empty.textContent = "Nenhum resultado encontrado.";  
+    list.append(empty);  
+    return;  
+  }  
+  
+  const fragment = document.createDocumentFragment();  
+  
+  for (const item of matches) {  
+    const button = document.createElement("button");  
+    button.type = "button";  
+    button.className = "result";  
+    button.setAttribute("role","option");  
+  
+    const name = document.createElement("span");  
+    name.textContent = item.name;  
+  
+    const sub = document.createElement("small");  
+  
+    if (type === "marca") {  
+      sub.textContent = "Fabricante";  
+    } else if (type === "modelo") {  
+      sub.textContent = "Modelo do veículo";  
+    } else {  
+      sub.textContent = "Ano-modelo e combustível";  
+    }  
+  
+    button.append(name,sub);  
+  
+    button.addEventListener("pointerdown", event => {  
+      // Mantém o foco até o evento de seleção.  
+      event.preventDefault();  
+    });  
+  
+    button.addEventListener("click", () => {  
+      closeList(config.field);  
+  
+      if (type === "marca") chooseBrand(item);  
+      else if (type === "modelo") chooseModel(item);  
+      else chooseYear(item);  
+    });  
+  
+    fragment.append(button);  
+  }  
+  
+  list.append(fragment);  
+}  
+  
+function setupAutocomplete(type) {  
+  const config = {  
+    marca:{field:"fieldMarca",input:"buscaMarca",list:"listaMarcas",timer:"marca"},  
+    modelo:{field:"fieldModelo",input:"buscaModelo",list:"listaModelos",timer:"modelo"},  
+    ano:{field:"fieldAno",input:"buscaAno",list:"listaAnos",timer:"ano"}  
+  }[type];  
+  
+  const input = $(config.input);  
+  
+  input.addEventListener("focus", () => {  
+    if (input.disabled) return;  
+    showList(config.field);  
+    renderList(type);  
+  });  
+  
+  input.addEventListener("click", () => {  
+    if (input.disabled) return;  
+    showList(config.field);  
+    renderList(type);  
+  });  
+  
+  input.addEventListener("input", () => {  
+    if (input.disabled) return;  
+  
+    showList(config.field);  
+  
+    clearTimeout(  
+      type === "marca" ? timerMarca :  
+      type === "modelo" ? timerModelo : timerAno  
+    );  
+  
+    const timer = setTimeout(() => renderList(type), 50);  
+  
+    if (type === "marca") timerMarca = timer;  
+    else if (type === "modelo") timerModelo = timer;  
+    else timerAno = timer;  
+  });  
+  
+  input.addEventListener("keydown", event => {  
+    if (event.key === "Escape") {  
+      closeList(config.field);  
+      input.blur();  
+    }  
+  
+    if (event.key === "ArrowDown") {  
+      const first = $(config.list).querySelector("button");  
+      if (first) {  
+        event.preventDefault();  
+        first.focus();  
+      }  
+    }  
+  });  
+  
+  input.addEventListener("blur", () => {  
+    setTimeout(() => {  
+      if (!$(config.field).contains(document.activeElement)) {  
+        closeList(config.field);  
+      }  
+    },100);  
+  });  
+}  
+  
+function resetLinks() {  
+  for (const id of ["Fuse","Owner","Tech","Guias","Opinions","Defeitos"]) {  
+    $("status" + id).textContent = "Selecione o veículo";  
+    $("link" + id).href = "#";  
+    $("link" + id).classList.add("disabled");  
+  }  
+}  
+  
+function resetFipeCard() {  
+  $("cardFipe").classList.add("hidden");  
+}  
+  
+function getOpinautosBase() {  
+  if (!marcaAtual || !modeloAtual) return null;  
+  
+  const brand = slugify(  
+    marcaAtual.name  
+      .replace(/^vw\s*-\s*/i,"")  
+      .replace(/^gm\s*-\s*/i,"")  
+  );  
+  
+  const firstWord = norm(modeloAtual.name).split(/\s+/)[0] || "";  
+  const model = slugify(firstWord);  
+  
+  if (!brand || !model) return null;  
+  
+  return `https://www.opinautos.com.br/br/${brand}/${model}/`;  
+}  
+  
+function enableLink(type,url) {  
+  const link = $("link" + type);  
+  link.href = url;  
+  link.classList.remove("disabled");  
+}  
+  
+function renderLinks() {  
+  if (!marcaAtual || !modeloAtual) {  
+    resetLinks();  
+    return;  
+  }  
+  
+  const base = getOpinautosBase();  
+  
+  if (!base) {  
+    resetLinks();  
+    return;  
+  }  
+  
+  const firstWord = norm(modeloAtual.name).split(/\s+/)[0] || "";  
+  
+  // 1. Fusíveis  
+  if (anoAtual) {  
+    const year = String(anoAtual.code).split("-")[0];  
+    enableLink("Fuse",base + "info/fusiveis/" + encodeURIComponent(year));  
+    $("statusFuse").textContent = "Modelo: " + firstWord + " · Ano " + year;  
+  } else {  
+    $("statusFuse").textContent = "Selecione o ano";  
+    $("linkFuse").href = "#";  
+    $("linkFuse").classList.add("disabled");  
+  }  
+  
+  // 2. Manual do proprietário  
+  enableLink("Owner",base + "info/manuais");  
+  $("statusOwner").textContent = "Manual do proprietário · " + firstWord;  
+  
+  // 3. Manual técnico  
+  enableLink("Tech",base + "info/manuais/reparo");  
+  $("statusTech").textContent = "Manual técnico · " + firstWord;  
+  
+  // 4. Guias úteis  
+  enableLink("Guias",base + "guias");  
+  $("statusGuias").textContent = "Guias e dicas · " + firstWord;  
+  
+  // 5. Opiniões  
+  enableLink("Opinions",base + "opinioes");  
+  $("statusOpinions").textContent = "Experiências de proprietários · " + firstWord;  
+  
+  // 6. Defeitos  
+  enableLink("Defeitos",base + "defeitos");  
+  $("statusDefeitos").textContent = "Problemas relatados · " + firstWord;  
+}  
+  
+function manufacturerDomain(name) {  
+  const n = norm(name);  
+  
+  const rules = [  
+    [/volkswagen|vw\b/,"volkswagen.com.br"],  
+    [/chevrolet|gm\b/,"chevrolet.com.br"],  
+    [/fiat/,"fiat.com.br"],  
+    [/toyota/,"toyota.com.br"],  
+    [/honda/,"honda.com.br"],  
+    [/hyundai/,"hyundai.com.br"],  
+    [/renault/,"renault.com.br"],  
+    [/ford/,"ford.com.br"],  
+    [/nissan/,"nissan.com.br"],  
+    [/jeep/,"jeep.com.br"],  
+    [/citroen/,"citroen.com.br"],  
+    [/mitsubishi/,"mitsubishimotors.com.br"],  
+    [/peugeot/,"peugeot.com.br"],  
+    [/bmw/,"bmw.com.br"],  
+    [/mercedes/,"mercedes-benz.com.br"],  
+    [/audi/,"audi.com.br"],  
+    [/kia/,"kia.com.br"],  
+    [/volvo/,"volvocars.com"],  
+    [/caoa chery|chery/,"caoachery.com.br"],  
+    [/byd/,"byd.com"],  
+    [/ram/,"ram.com"],  
+    [/iveco/,"iveco.com.br"],  
+    [/porsche/,"porsche.com.br"],  
+    [/subaru/,"subaru.com.br"],  
+    [/suzuki/,"suzuki.com.br"],  
+    [/land rover|land-rover/,"landrover.com.br"]  
+  ];  
+  
+  return rules.find(([regex]) => regex.test(n))?.[1] || "";  
+}  
+  
+function renderLogo(brand) {  
+  const box = $("logoBox");  
+  box.replaceChildren();  
+  
+  const domain = manufacturerDomain(brand?.name || "");  
+  
+  if (!domain) {  
+    const fallback = document.createElement("span");  
+    fallback.className = "logo-fallback";  
+    fallback.textContent = "🚘";  
+    box.append(fallback);  
+    return;  
+  }  
+  
+  const img = document.createElement("img");  
+  img.alt = "Logo da fabricante " + brand.name;  
+  img.loading = "lazy";  
+  img.referrerPolicy = "no-referrer";  
+  img.src = "https://www.google.com/s2/favicons?domain=" +  
+    encodeURIComponent(domain) + "&sz=128";  
+  
+  img.onerror = () => {  
+    box.replaceChildren();  
+    const fallback = document.createElement("span");  
+    fallback.className = "logo-fallback";  
+    fallback.textContent = "🚘";  
+    box.append(fallback);  
+  };  
+  
+  box.append(img);  
+}  
+  
+function webmotorsBrandSlug(name) {  
+  const n = norm(name);  
+  
+  if (n.includes("volkswagen") || n.startsWith("vw")) return "volkswagen";  
+  if (n.includes("chevrolet") || n.startsWith("gm")) return "chevrolet";  
+  
+  return slugify(  
+    name.replace(/^vw\s*-\s*/i,"").replace(/^gm\s*-\s*/i,"")  
+  );  
+}  
+  
+function webmotorsModelSlug(name) {  
+  const n = norm(name);  
+  
+  const known = [  
+    [/\bamarok\b/,"amarok"],  
+    [/\bgol\b/,"gol"],  
+    [/\bpolo\b/,"polo"],  
+    [/\bvirtus\b/,"virtus"],  
+    [/\bt-cross\b/,"t-cross"],  
+    [/\bnivus\b/,"nivus"],  
+    [/\bsaveiro\b/,"saveiro"],  
+    [/\bjetta\b/,"jetta"],  
+    [/\btaos\b/,"taos"],  
+    [/\btiguan\b/,"tiguan"],  
+    [/\bcorolla\b/,"corolla"],  
+    [/\bhilux\b/,"hilux"],  
+    [/\bonix\b/,"onix"],  
+    [/\btracker\b/,"tracker"],  
+    [/\bcruze\b/,"cruze"],  
+    [/\bstrada\b/,"strada"],  
+    [/\bargo\b/,"argo"],  
+    [/\bmobi\b/,"mobi"],  
+    [/\buno\b/,"uno"],  
+    [/\bkwid\b/,"kwid"],  
+    [/\bduster\b/,"duster"]  
+  ];  
+  
+  return known.find(([regex]) => regex.test(n))?.[1] || slugify(name);  
+}  
+  
+function setWebmotorsLinks() {  
+  if (!marcaAtual) return;  
+  
+  const brand = webmotorsBrandSlug(marcaAtual.name);  
+  const model = modeloAtual ? webmotorsModelSlug(modeloAtual.name) : "";  
+  
+  $("wmMarca").href =  
+    "https://www.webmotors.com.br/tabela-fipe/carros/" + brand;  
+  
+  $("wmModelo").href =  
+    "https://www.webmotors.com.br/tabela-fipe/carros/" +  
+    brand + (model ? "/" + model : "");  
+  
+  $("wmBusca").href =  
+    "https://www.google.com/search?q=" +  
+    encodeURIComponent(  
+      "site:webmotors.com.br " + marcaAtual.name + " " +  
+      (modeloAtual?.name || "") + " anúncios"  
+    );  
+  
+  $("wmModelo").classList.toggle("hidden",!modeloAtual);  
+}  
+  
+function renderFipe(detail) {  
+  $("cardFipe").classList.remove("hidden");  
+  
+  $("fipeTitulo").textContent =  
+    (detail.brand || marcaAtual?.name || "") + " " +  
+    (detail.model || modeloAtual?.name || "");  
+  
+  $("fipeSubtitulo").textContent =  
+    "Ano-modelo " + (detail.modelYear ?? anoAtual?.name ?? "—") +  
+    " · " + (detail.fuel || "Combustível não informado");  
+  
+  $("fipePreco").textContent = detail.price || "Preço indisponível";  
+  $("fipeReferencia").textContent =  
+    "Referência: " + (detail.referenceMonth || "não informada");  
+  
+  $("fipeMarca").textContent = detail.brand || marcaAtual?.name || "—";  
+  $("fipeModelo").textContent = detail.model || modeloAtual?.name || "—";  
+  $("fipeAno").textContent = String(detail.modelYear ?? anoAtual?.name ?? "—");  
+  $("fipeCombustivel").textContent = detail.fuel || "—";  
+  $("fipeCodigo").textContent = detail.codeFipe || "—";  
+  $("fipeMes").textContent = detail.referenceMonth || "—";  
+  
+  renderLogo(marcaAtual);  
+  setWebmotorsLinks();  
+}  
+  
+async function loadDetail(force = false) {  
+  if (!marcaAtual || !modeloAtual || !anoAtual) return;  
+  
+  const request = ++seqDetalhe;  
+  const key = `detail_${marcaAtual.code}_${modeloAtual.code}_${anoAtual.code}`;  
+  
+  loading("Consultando preço e detalhes FIPE...");  
+  
+  try {  
+    const result = await getJSON(  
+      `${API}/${encodeURIComponent(marcaAtual.code)}/models/${encodeURIComponent(modeloAtual.code)}/years/${encodeURIComponent(anoAtual.code)}`,  
+      key,  
+      force  
+    );  
+  
+    if (request !== seqDetalhe) return;  
+  
+    renderFipe(result.data);  
+  
+    showMessage(  
+      "Dados FIPE carregados" + (result.cached ? " do cache local." : "."),  
+      "success"  
+    );  
+  } catch (error) {  
+    if (request !== seqDetalhe) return;  
+  
+    $("cardFipe").classList.remove("hidden");  
+    renderLogo(marcaAtual);  
+  
+    $("fipeTitulo").textContent = marcaAtual.name + " " + modeloAtual.name;  
+    $("fipeSubtitulo").textContent = "Detalhes FIPE indisponíveis";  
+    $("fipePreco").textContent = "Indisponível";  
+    $("fipeReferencia").textContent = error.message;  
+    $("fipeMarca").textContent = marcaAtual.name;  
+    $("fipeModelo").textContent = modeloAtual.name;  
+    $("fipeAno").textContent = anoAtual.name;  
+    $("fipeCombustivel").textContent = "—";  
+    $("fipeCodigo").textContent = "—";  
+    $("fipeMes").textContent = "—";  
+  
+    setWebmotorsLinks();  
+    showMessage(error.message,"error");  
+  }  
+}  
+  
+function resetModelAndYear() {  
+  ++seqModelo;  
+  ++seqAno;  
+  ++seqDetalhe;  
+  
+  modelos = [];  
+  anos = [];  
+  modeloAtual = null;  
+  anoAtual = null;  
+  
+  $("buscaModelo").value = "";  
+  $("buscaModelo").disabled = true;  
+  $("buscaModelo").placeholder = "Selecione primeiro a fabricante";  
+  
+  $("buscaAno").value = "";  
+  $("buscaAno").disabled = true;  
+  $("buscaAno").placeholder = "Selecione primeiro o modelo";  
+  
+  $("listaModelos").replaceChildren();  
+  $("listaAnos").replaceChildren();  
+  
+  resetFipeCard();  
+  resetLinks();  
+}  
+  
+async function chooseBrand(item, restoring = false) {  
+  marcaAtual = item;  
+  
+  $("buscaMarca").value = item.name;  
+  $("buscaModelo").value = "";  
+  $("buscaAno").value = "";  
+  
+  hideAllLists();  
+  resetModelAndYear();  
+  setWebmotorsLinks();  
+  saveState();  
+  
+  const request = ++seqModelo;  
+  loading("Carregando modelos de " + item.name + "...");  
+  
+  try {  
+    const result = await getJSON(  
+      `${API}/${encodeURIComponent(item.code)}/models`,  
+      "models_" + item.code  
+    );  
+  
+    if (request !== seqModelo) return;  
+  
+    modelos = result.data  
+      .map(x => ({code:String(x.code),name:x.name}))  
+      .sort((a,b) => a.name.localeCompare(b.name,"pt-BR"));  
+  
+    $("buscaModelo").disabled = false;  
+    $("buscaModelo").placeholder = "Toque para escolher ou digite um modelo";  
+  
+    showMessage(  
+      modelos.length + " modelos disponíveis. Toque no campo para pesquisar.",  
+      "success"  
+    );  
+  
+    const saved = readState();  
+  
+    if (restoring && saved?.modelCode) {  
+      const old = modelos.find(x => x.code === String(saved.modelCode));  
+      if (old) await chooseModel(old,true);  
+    }  
+  } catch (error) {  
+    if (request === seqModelo) showMessage(error.message,"error");  
+  }  
+}  
+  
+async function chooseModel(item, restoring = false) {  
+  modeloAtual = item;  
+  anoAtual = null;  
+  
+  $("buscaModelo").value = item.name;  
+  $("buscaAno").value = "";  
+  
+  hideAllLists();  
+  ++seqAno;  
+  ++seqDetalhe;  
+  
+  anos = [];  
+  resetFipeCard();  
+  resetLinks();  
+  setWebmotorsLinks();  
+  saveState();  
+  
+  const request = ++seqAno;  
+  
+  $("buscaAno").disabled = true;  
+  $("buscaAno").placeholder = "Carregando anos...";  
+  
+  loading("Carregando anos e combustíveis...");  
+  
+  try {  
+    const result = await getJSON(  
+      `${API}/${encodeURIComponent(marcaAtual.code)}/models/${encodeURIComponent(item.code)}/years`,  
+      "years_" + marcaAtual.code + "_" + item.code  
+    );  
+  
+    if (request !== seqAno) return;  
+  
+    anos = result.data.map(x => ({  
+      code:String(x.code),  
+      name:x.name  
+    }));  
+  
+    $("buscaAno").disabled = false;  
+    $("buscaAno").placeholder = "Toque para selecionar ano e combustível";  
+  
+    showMessage(  
+      anos.length + " opções de ano/combustível disponíveis.",  
+      "success"  
+    );  
+  
+    const saved = readState();  
+  
+    if (restoring && saved?.yearCode) {  
+      const old = anos.find(x => x.code === String(saved.yearCode));  
+      if (old) await chooseYear(old);  
+    }  
+  } catch (error) {  
+    if (request === seqAno) {  
+      $("buscaAno").placeholder = "Não foi possível carregar os anos";  
+      showMessage(error.message,"error");  
+    }  
+  }  
+}  
+  
+async function chooseYear(item) {  
+  anoAtual = item;  
+  $("buscaAno").value = item.name;  
+  
+  hideAllLists();  
+  renderLinks();  
+  saveState();  
+  
+  await loadDetail();  
+}  
+  
+function clearSelection() {  
+  ++seqMarca;  
+  ++seqModelo;  
+  ++seqAno;  
+  ++seqDetalhe;  
+  
+  marcaAtual = null;  
+  modeloAtual = null;  
+  anoAtual = null;  
+  
+  modelos = [];  
+  anos = [];  
+  
+  $("buscaMarca").value = "";  
+  $("buscaModelo").value = "";  
+  $("buscaAno").value = "";  
+  
+  $("buscaModelo").disabled = true;  
+  $("buscaAno").disabled = true;  
+  
+  $("buscaModelo").placeholder = "Selecione primeiro a fabricante";  
+  $("buscaAno").placeholder = "Selecione primeiro o modelo";  
+  
+  hideAllLists();  
+  resetFipeCard();  
+  resetLinks();  
+  
+  $("wmMarca").href = "#";  
+  $("wmModelo").href = "#";  
+  $("wmBusca").href = "#";  
+  $("wmModelo").classList.add("hidden");  
+  
+  try {  
+    localStorage.removeItem(STATE_KEY);  
+  } catch {}  
+  
+  showMessage("Seleção apagada. O cache FIPE foi mantido.");  
+}  
+  
+async function loadBrands(force = false) {  
+  const request = ++seqMarca;  
+  loading("Carregando fabricantes...");  
+  
+  try {  
+    const result = await getJSON(API,"brands",force);  
+  
+    if (request !== seqMarca) return;  
+  
+    marcas = result.data  
+      .map(x => ({code:String(x.code),name:x.name}))  
+      .sort((a,b) => a.name.localeCompare(b.name,"pt-BR"));  
+  
+    showMessage("Fabricantes carregadas. Toque no campo para pesquisar.","success");  
+  
+    const saved = readState();  
+  
+    if (saved?.brandCode) {  
+      const old = marcas.find(x => x.code === String(saved.brandCode));  
+      if (old) {  
+        await chooseBrand(old,true);  
+        return;  
+      }  
+    }  
+  } catch (error) {  
+    if (request === seqMarca) showMessage(error.message,"error");  
+  }  
+}  
+  
+setupAutocomplete("marca");  
+setupAutocomplete("modelo");  
+setupAutocomplete("ano");  
+  
+document.addEventListener("pointerdown",event => {  
+  if (!event.target.closest(".field")) hideAllLists();  
+});  
+  
+document.addEventListener("keydown",event => {  
+  if (event.key === "Escape") hideAllLists();  
+});  
+  
+$("btnLimpar").addEventListener("click",clearSelection);  
+  
+$("btnAtualizar").addEventListener("click",async () => {  
+  const brand = marcaAtual;  
+  const model = modeloAtual;  
+  const year = anoAtual;  
+  
+  try {  
+    const keys = [];  
+  
+    for (let i=0;i<localStorage.length;i++) {  
+      const key = localStorage.key(i);  
+      if (key && key.startsWith(CACHE_PREFIX)) keys.push(key);  
+    }  
+  
+    keys.forEach(key => localStorage.removeItem(key));  
+  } catch {}  
+  
+  cacheMem.clear();  
+  
+  if (!brand) {  
+    await loadBrands(true);  
+    return;  
+  }  
+  
+  await chooseBrand(brand);  
+  
+  if (model) {  
+    const selectedModel = modelos.find(x => x.code === model.code);  
+  
+    if (selectedModel) {  
+      await chooseModel(selectedModel);  
+  
+      if (year) {  
+        const selectedYear = anos.find(x => x.code === year.code);  
+        if (selectedYear) await chooseYear(selectedYear);  
+      }  
+    }  
+  }  
+});  
+  
+/* Inicialização e restauração da seleção salva. */  
+resetLinks();  
+loadBrands();  
+</script>  </body>  
+</html>  
