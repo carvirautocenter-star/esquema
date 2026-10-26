@@ -23,7 +23,6 @@
 *{box-sizing:border-box}
 
 html{
-  /* Garante folga ao rolar o campo focado para o topo (teclado aberto). */
   scroll-padding-top:16px;
   scroll-padding-bottom:16px;
   -webkit-text-size-adjust:100%;
@@ -103,7 +102,6 @@ label{
   line-height:1.45;
 }
 
-/* A lista só aparece com o input em foco. */
 .results{
   display:none;
   position:absolute;
@@ -118,13 +116,11 @@ label{
   max-height:250px;
   overflow-y:auto;
   overscroll-behavior:contain;
-  /* Deixa o conteúdo respeitar a altura dinâmica definida via JS. */
   -webkit-overflow-scrolling:touch;
 }
 
 .field.active .results{display:block}
 
-/* Quando não houver espaço abaixo (teclado aberto), abre para cima. */
 .field.active .results.results-above{
   top:auto;
   bottom:calc(100% + 5px);
@@ -544,7 +540,6 @@ let timerAno;
 let activeFieldId = null;
 let initialRestoreDone = false;
 
-/* ---------- Persistência de rascunho por campo ---------- */
 const fieldState = {
   marca:  { userFiltering:false, draft:"" },
   modelo: { userFiltering:false, draft:"" },
@@ -579,7 +574,6 @@ function restoreDrafts() {
   applyDraftsToInputs();
 }
 
-/* Aplica o rascunho apenas quando o campo está habilitado e sem seleção. */
 function applyDraftsToInputs() {
   const cfg = {
     marca:{input:"buscaMarca",selected:()=>marcaAtual},
@@ -598,7 +592,6 @@ function applyDraftsToInputs() {
   }
 }
 
-/* ---------- Utilidades ---------- */
 function norm(value) {
   return String(value || "")
     .normalize("NFD")
@@ -630,7 +623,6 @@ function loading(message) {
   box.append(spinner, document.createTextNode(message));
 }
 
-/* ---------- Cache ---------- */
 function readCache(key) {
   if (cacheMem.has(key)) return cacheMem.get(key);
 
@@ -704,16 +696,20 @@ async function getJSON(url, key, force = false) {
   }
 }
 
-/* ---------- Persistência da seleção ---------- */
-function saveState() {
+/* ---------------------------------------------------------------------------
+ * Persistência da seleção.
+ * Aceita "overrides" para preservar códigos de modelo/ano durante a cadeia
+ * de restauração (evita que saveState() apague o que ainda vai ser lido).
+ * ------------------------------------------------------------------------- */
+function saveState(overrides = {}) {
   try {
     localStorage.setItem(STATE_KEY, JSON.stringify({
-      brandCode:marcaAtual?.code || "",
-      brandName:marcaAtual?.name || "",
-      modelCode:modeloAtual?.code || "",
-      modelName:modeloAtual?.name || "",
-      yearCode:anoAtual?.code || "",
-      yearName:anoAtual?.name || ""
+      brandCode: overrides.brandCode ?? (marcaAtual?.code || ""),
+      brandName: overrides.brandName ?? (marcaAtual?.name || ""),
+      modelCode: overrides.modelCode ?? (modeloAtual?.code || ""),
+      modelName: overrides.modelName ?? (modeloAtual?.name || ""),
+      yearCode:  overrides.yearCode  ?? (anoAtual?.code    || ""),
+      yearName:  overrides.yearName  ?? (anoAtual?.name    || "")
     }));
   } catch {}
 }
@@ -726,7 +722,6 @@ function readState() {
   }
 }
 
-/* ---------- Listas e posicionamento ---------- */
 function closeList(fieldId) {
   const field = $(fieldId);
   if (!field) return;
@@ -762,10 +757,6 @@ function showList(fieldId) {
   ensureFieldVisible(field);
 }
 
-/*
- * Reposiciona/limita a lista com base na área realmente visível.
- * O VisualViewport API reflete a porção acima do teclado em mobile.
- */
 function adjustResultsPosition() {
   if (!activeFieldId) return;
 
@@ -776,7 +767,6 @@ function adjustResultsPosition() {
   const vv = window.visualViewport;
 
   if (!vv) {
-    // Fallback desktop.
     list.style.maxHeight = "";
     list.classList.remove("results-above");
     return;
@@ -792,7 +782,7 @@ function adjustResultsPosition() {
   const minSpace = 120;
   const maxListHeight = 280;
 
-  let useBelow = spaceBelow >= minSpace || spaceBelow >= spaceAbove;
+  const useBelow = spaceBelow >= minSpace || spaceBelow >= spaceAbove;
 
   if (useBelow) {
     list.classList.remove("results-above");
@@ -805,7 +795,6 @@ function adjustResultsPosition() {
   }
 }
 
-/* Rola o campo para o topo caso o teclado esteja cobrindo a lista. */
 function ensureFieldVisible(field) {
   const vv = window.visualViewport;
   const rect = field.getBoundingClientRect();
@@ -828,7 +817,6 @@ function ensureFieldVisible(field) {
   }
 }
 
-/* Reage à abertura/fechamento do teclado e panning em mobile. */
 if (window.visualViewport) {
   window.visualViewport.addEventListener("resize", () => {
     if (!activeFieldId) return;
@@ -841,7 +829,6 @@ if (window.visualViewport) {
   });
 }
 
-/* ---------- Renderização das listas ---------- */
 function renderList(type, queryOverride) {
   const config = {
     marca:{
@@ -870,7 +857,6 @@ function renderList(type, queryOverride) {
   const input = $(config.input);
   const list = $(config.list);
 
-  // Se queryOverride foi passada (string), usa ela; senão, filtra pelo input.
   const query = queryOverride !== undefined
     ? norm(queryOverride)
     : norm(input.value);
@@ -884,7 +870,6 @@ function renderList(type, queryOverride) {
 
   list.replaceChildren();
 
-  // Sem dados ainda (primeira carga).
   if (!config.items.length) {
     const empty = document.createElement("div");
     empty.className = "result empty";
@@ -925,7 +910,6 @@ function renderList(type, queryOverride) {
     button.append(name,sub);
 
     button.addEventListener("pointerdown", event => {
-      // Mantém o foco até o evento de seleção.
       event.preventDefault();
     });
 
@@ -943,7 +927,6 @@ function renderList(type, queryOverride) {
   list.append(fragment);
 }
 
-/* ---------- Autocomplete ---------- */
 function setupAutocomplete(type) {
   const config = {
     marca:{field:"fieldMarca",input:"buscaMarca",list:"listaMarcas"},
@@ -955,10 +938,8 @@ function setupAutocomplete(type) {
 
   const renderForFocus = () => {
     if (fieldState[type].userFiltering) {
-      // Retoma o filtro que o usuário digitou.
       renderList(type);
     } else {
-      // Mostra TODAS as opções quando já existe uma seleção no campo.
       renderList(type, "");
     }
   };
@@ -1025,7 +1006,6 @@ function setupAutocomplete(type) {
   });
 }
 
-/* ---------- Links e FIPE ---------- */
 function resetLinks() {
   for (const id of ["Fuse","Owner","Tech","Guias","Opinions","Defeitos"]) {
     $("status" + id).textContent = "Selecione o veículo";
@@ -1304,7 +1284,6 @@ async function loadDetail(force = false) {
   }
 }
 
-/* ---------- Reset entre etapas ---------- */
 function resetModelAndYear(keepDrafts = false) {
   ++seqModelo;
   ++seqAno;
@@ -1336,21 +1315,42 @@ function resetModelAndYear(keepDrafts = false) {
   resetLinks();
 }
 
-/* ---------- Seleções ---------- */
+/* ---------------------------------------------------------------------------
+ * chooseBrand
+ * - Captura o estado anterior ANTES de resetar modelo/ano.
+ * - Durante restauração, preserva modelCode/yearCode no localStorage
+ *   para que chooseModel/chooseYear consigam encontrá-los.
+ * ------------------------------------------------------------------------- */
 async function chooseBrand(item, restoring = false) {
   marcaAtual = item;
+
+  const prior = readState();
 
   $("buscaMarca").value = item.name;
   $("buscaModelo").value = "";
   $("buscaAno").value = "";
 
   fieldState.marca = { userFiltering:false, draft:"" };
+  if (!restoring) {
+    fieldState.modelo = { userFiltering:false, draft:"" };
+    fieldState.ano = { userFiltering:false, draft:"" };
+  }
   saveDrafts();
 
   hideAllLists();
   resetModelAndYear(restoring);
   setWebmotorsLinks();
-  saveState();
+
+  if (restoring && prior) {
+    saveState({
+      modelCode: prior.modelCode || "",
+      modelName: prior.modelName || "",
+      yearCode: prior.yearCode || "",
+      yearName: prior.yearName || ""
+    });
+  } else {
+    saveState();
+  }
 
   const request = ++seqModelo;
   loading("Carregando modelos de " + item.name + "...");
@@ -1375,23 +1375,34 @@ async function chooseBrand(item, restoring = false) {
       "success"
     );
 
-    // Restaura rascunho de modelo se houver (apenas em restauração de sessão).
-    if (restoring) applyDraftsToInputs();
+    if (restoring) {
+      applyDraftsToInputs();
 
-    const saved = readState();
+      if (prior?.modelCode) {
+        const old = modelos.find(x => x.code === String(prior.modelCode));
+        if (old) {
+          await chooseModel(old, true);
+          return;
+        }
+      }
 
-    if (restoring && saved?.modelCode) {
-      const old = modelos.find(x => x.code === String(saved.modelCode));
-      if (old) await chooseModel(old,true);
+      // Modelo salvo não existe mais — limpa estado inconsistente.
+      saveState();
     }
   } catch (error) {
     if (request === seqModelo) showMessage(error.message,"error");
   }
 }
 
+/* ---------------------------------------------------------------------------
+ * chooseModel
+ * - Mesma correção: preserva yearCode durante restauração.
+ * ------------------------------------------------------------------------- */
 async function chooseModel(item, restoring = false) {
   modeloAtual = item;
   anoAtual = null;
+
+  const prior = readState();
 
   $("buscaModelo").value = item.name;
   $("buscaAno").value = "";
@@ -1410,7 +1421,15 @@ async function chooseModel(item, restoring = false) {
   resetFipeCard();
   resetLinks();
   setWebmotorsLinks();
-  saveState();
+
+  if (restoring && prior) {
+    saveState({
+      yearCode: prior.yearCode || "",
+      yearName: prior.yearName || ""
+    });
+  } else {
+    saveState();
+  }
 
   const request = ++seqAno;
 
@@ -1440,13 +1459,19 @@ async function chooseModel(item, restoring = false) {
       "success"
     );
 
-    if (restoring) applyDraftsToInputs();
+    if (restoring) {
+      applyDraftsToInputs();
 
-    const saved = readState();
+      if (prior?.yearCode) {
+        const old = anos.find(x => x.code === String(prior.yearCode));
+        if (old) {
+          await chooseYear(old);
+          return;
+        }
+      }
 
-    if (restoring && saved?.yearCode) {
-      const old = anos.find(x => x.code === String(saved.yearCode));
-      if (old) await chooseYear(old);
+      // Ano salvo não existe mais — limpa estado inconsistente.
+      saveState();
     }
   } catch (error) {
     if (request === seqAno) {
@@ -1514,7 +1539,6 @@ function clearSelection() {
   showMessage("Seleção apagada. O cache FIPE foi mantido.");
 }
 
-/* ---------- Carga inicial ---------- */
 async function loadBrands(force = false) {
   const request = ++seqMarca;
   loading("Carregando fabricantes...");
@@ -1530,7 +1554,6 @@ async function loadBrands(force = false) {
 
     showMessage("Fabricantes carregadas. Toque no campo para pesquisar.","success");
 
-    // Na primeira carga, aplica rascunhos pendentes.
     if (!initialRestoreDone) {
       applyDraftsToInputs();
       initialRestoreDone = true;
@@ -1541,16 +1564,17 @@ async function loadBrands(force = false) {
     if (saved?.brandCode) {
       const old = marcas.find(x => x.code === String(saved.brandCode));
       if (old) {
-        await chooseBrand(old,true);
+        await chooseBrand(old, true);
         return;
       }
+      // Marca salva não existe mais — limpa.
+      saveState();
     }
   } catch (error) {
     if (request === seqMarca) showMessage(error.message,"error");
   }
 }
 
-/* ---------- Inicialização ---------- */
 setupAutocomplete("marca");
 setupAutocomplete("modelo");
 setupAutocomplete("ano");
@@ -1604,7 +1628,6 @@ $("btnAtualizar").addEventListener("click",async () => {
   }
 });
 
-/* Restaura rascunhos e inicia carregamento. */
 resetLinks();
 restoreDrafts();
 loadBrands();
